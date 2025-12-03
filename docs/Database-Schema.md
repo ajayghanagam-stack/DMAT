@@ -1,9 +1,9 @@
 # DMAT Database Schema
 
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2025-12-03
 **Database:** PostgreSQL 14+
-**Last Updated:** Migration 002 - Phase 1 Landing Pages Extension
+**Last Updated:** Migration 003 - Phase 1 Leads Refinement
 
 ---
 
@@ -63,11 +63,20 @@
 │     name                │
 │     email               │
 │     phone               │
+│     company *           │
+│     job_title *         │
+│     message *           │
 │     source              │
+│     source_details *    │
+│     referrer_url *      │
+│     landing_url *       │
+│     user_agent *        │
+│     ip_address *        │
 │     status              │
 │     created_at          │
 │     updated_at          │
 └─────────────────────────┘
+          * = Phase 1 fields
 
 Legend:
 PK = Primary Key
@@ -239,15 +248,84 @@ INSERT INTO landing_pages (
 
 **Purpose:** Store marketing leads from all sources
 
+#### Core Fields
+
 | Column | Type | Constraints | Default | Description |
 |--------|------|-------------|---------|-------------|
 | id | SERIAL | PRIMARY KEY | auto | Lead ID |
 | landing_page_id | INTEGER | NULLABLE, FK → landing_pages(id) | NULL | Source landing page |
+
+#### Basic Contact Information
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
 | name | VARCHAR(255) | NOT NULL | - | Lead full name |
 | email | VARCHAR(255) | NOT NULL, CHECK (email format) | - | Lead email |
 | phone | VARCHAR(50) | NULLABLE | NULL | Lead phone number |
-| source | VARCHAR(100) | NOT NULL, CHECK (valid sources) | 'landing_page' | Lead source |
+
+#### Additional Contact Details (Migration 003)
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| company | VARCHAR(255) | NULLABLE | NULL | Company/organization name (B2B) |
+| job_title | VARCHAR(255) | NULLABLE | NULL | Job title/role (B2B) |
+| message | TEXT | NULLABLE | NULL | Custom message/notes from form |
+
+#### Source Attribution
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| source | VARCHAR(100) | NOT NULL, CHECK (valid sources) | 'landing_page' | Lead source category |
+| source_details | VARCHAR(500) | NULLABLE | NULL | Specific source identifier *(Migration 003)* |
+| referrer_url | VARCHAR(2048) | NULLABLE | NULL | HTTP Referrer (traffic source) *(Migration 003)* |
+| landing_url | VARCHAR(2048) | NULLABLE | NULL | Full URL with UTM parameters *(Migration 003)* |
+
+**Valid Sources:**
+- `landing_page` - From landing page form
+- `webinar` - From webinar registration
+- `social_media` - From social media campaign
+- `wordpress_form` - From WordPress contact form
+- `manual` - Manually entered
+- `csv_import` - Bulk CSV import
+- `other` - Other sources
+
+**Source Attribution Examples:**
+```
+source: "landing_page"
+source_details: "LP: free-marketing-guide-2025"
+referrer_url: "https://google.com/search?q=marketing+automation"
+landing_url: "https://innovateelectronics.com/lp/free-marketing-guide-2025?utm_source=google&utm_medium=organic"
+```
+
+#### Technical Metadata (Migration 003)
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| user_agent | VARCHAR(500) | NULLABLE | NULL | Browser/device user agent string |
+| ip_address | VARCHAR(45) | NULLABLE | NULL | IPv4/IPv6 address (privacy-sensitive) |
+
+**Privacy Note:** `user_agent` and `ip_address` are considered personal data under GDPR/CCPA. Handle according to privacy policies and data retention requirements.
+
+#### Lead Management
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
 | status | VARCHAR(50) | NOT NULL, CHECK (valid statuses) | 'new' | Lead status |
+
+**Valid Statuses:**
+- `new` - Just captured, not contacted
+- `contacted` - Initial contact made
+- `qualified` - Meets qualification criteria
+- `in_progress` - Actively being worked on
+- `converted` - Successfully converted to customer
+- `closed_won` - Deal closed successfully
+- `closed_lost` - Deal lost
+- `unqualified` - Does not meet criteria
+
+#### Audit Fields
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
 | created_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | Lead capture time |
 | updated_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | Last update time |
 
@@ -260,6 +338,10 @@ INSERT INTO landing_pages (
 - `idx_leads_name` on `name`
 - `idx_leads_source_status` (composite) on `(source, status)`
 - `idx_leads_landing_page_status` (composite) on `(landing_page_id, status)`
+- `idx_leads_source_details` (partial) on `source_details WHERE source_details IS NOT NULL` *(Migration 003)*
+- `idx_leads_company` (partial) on `company WHERE company IS NOT NULL` *(Migration 003)*
+- `idx_leads_ip_address` (partial) on `ip_address WHERE ip_address IS NOT NULL` *(Migration 003)*
+- `idx_leads_referrer_url_pattern` (partial) on `referrer_url text_pattern_ops WHERE referrer_url IS NOT NULL` *(Migration 003)*
 
 **Foreign Keys:**
 - `landing_page_id` → `landing_pages(id)` ON DELETE SET NULL ON UPDATE CASCADE
@@ -267,24 +349,29 @@ INSERT INTO landing_pages (
 **Triggers:**
 - `trigger_leads_updated_at` - Auto-updates `updated_at` on row update
 
-**Valid Sources:**
-- `landing_page` - From landing page form
-- `webinar` - From webinar registration
-- `social_media` - From social media campaign
-- `wordpress_form` - From WordPress contact form
-- `manual` - Manually entered
-- `csv_import` - Bulk CSV import
-- `other` - Other sources
-
-**Valid Statuses:**
-- `new` - Just captured, not contacted
-- `contacted` - Initial contact made
-- `qualified` - Meets qualification criteria
-- `in_progress` - Actively being worked on
-- `converted` - Successfully converted to customer
-- `closed_won` - Deal closed successfully
-- `closed_lost` - Deal lost
-- `unqualified` - Does not meet criteria
+**Example Phase 1 Lead:**
+```sql
+INSERT INTO leads (
+  landing_page_id, name, email, phone,
+  company, job_title, message,
+  source, source_details, referrer_url, landing_url,
+  user_agent, status
+) VALUES (
+  1,
+  'Michael Chen',
+  'michael.chen@techcorp.com',
+  '+1-555-2002',
+  'TechCorp Solutions',
+  'VP of Marketing',
+  'Interested in enterprise pricing and demo',
+  'landing_page',
+  'LP: contact-us',
+  'https://google.com',
+  'https://innovateelectronics.com/contact?utm_source=google&utm_medium=cpc',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0',
+  'new'
+);
+```
 
 ---
 
@@ -474,6 +561,13 @@ ORDER BY created_at DESC;
 - ✅ Publishing metadata (publish_status, published_url, published_at)
 - ✅ Indexes for performance
 - ✅ Sample Phase 1 data
+
+### Migration 003: Phase 1 Leads Refinement (Completed ✅)
+- ✅ Additional contact fields (company, job_title, message)
+- ✅ Source attribution (source_details, referrer_url, landing_url)
+- ✅ Technical metadata (user_agent, ip_address)
+- ✅ Indexes for attribution analysis
+- ✅ Sample leads with full tracking data
 
 ### Future Migrations
 
