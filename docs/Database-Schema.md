@@ -1,8 +1,9 @@
 # DMAT Database Schema
 
-**Version:** 1.0
-**Date:** 2025-11-28
+**Version:** 1.2
+**Date:** 2025-12-03
 **Database:** PostgreSQL 14+
+**Last Updated:** Migration 003 - Phase 1 Leads Refinement
 
 ---
 
@@ -32,12 +33,22 @@
 │ PK  id (SERIAL)         │
 │     title               │
 │ UQ  slug                │
+│     headline *          │
+│     subheading *        │
+│     body_text *         │
+│     cta_text *          │
+│     hero_image_url *    │
+│     form_fields *       │
+│     publish_status *    │
+│     published_url *     │
+│     published_at *      │
 │     content_json        │
 │     status              │
 │ FK  created_by          │───────┐
 │     created_at          │       │
 │     updated_at          │       │
 └─────────────────────────┘       │
+          * = Phase 1 fields      │
            │                      │
            │ 1                    │
            │                      │
@@ -52,17 +63,26 @@
 │     name                │
 │     email               │
 │     phone               │
+│     company *           │
+│     job_title *         │
+│     message *           │
 │     source              │
+│     source_details *    │
+│     referrer_url *      │
+│     landing_url *       │
+│     user_agent *        │
+│     ip_address *        │
 │     status              │
 │     created_at          │
 │     updated_at          │
 └─────────────────────────┘
+          * = Phase 1 fields
 
 Legend:
 PK = Primary Key
 FK = Foreign Key
 UQ = Unique Constraint
-*  = Many (one-to-many)
+*  = Many (in relationships) OR Phase 1 fields (in table columns)
 1  = One
 ```
 
@@ -103,13 +123,79 @@ UQ = Unique Constraint
 
 **Purpose:** Store landing page content and metadata
 
+#### Core Fields
+
 | Column | Type | Constraints | Default | Description |
 |--------|------|-------------|---------|-------------|
 | id | SERIAL | PRIMARY KEY | auto | Landing page ID |
 | title | VARCHAR(500) | NOT NULL | - | Page title |
 | slug | VARCHAR(255) | NOT NULL, UNIQUE, CHECK (lowercase-with-dashes) | - | URL identifier |
-| content_json | JSONB | NOT NULL | '{}' | Page layout/sections |
-| status | VARCHAR(50) | NOT NULL, CHECK (draft/published/archived) | 'draft' | Publication status |
+
+#### Phase 1 Content Fields (Migration 002)
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| headline | VARCHAR(500) | NULLABLE | NULL | Main headline/H1 text |
+| subheading | VARCHAR(1000) | NULLABLE | NULL | Supporting subheading/H2 text |
+| body_text | TEXT | NULLABLE | NULL | Main body content |
+| cta_text | VARCHAR(100) | NULLABLE | 'Submit' | Call-to-action button text |
+| hero_image_url | VARCHAR(2048) | NULLABLE | NULL | URL to hero/banner image |
+
+#### Form Configuration (Migration 002)
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| form_fields | JSONB | NOT NULL | See below | Form field configuration |
+
+**Default form_fields value:**
+```json
+{
+  "fields": [
+    {
+      "name": "name",
+      "label": "Full Name",
+      "type": "text",
+      "required": true,
+      "placeholder": "Enter your name"
+    },
+    {
+      "name": "email",
+      "label": "Email Address",
+      "type": "email",
+      "required": true,
+      "placeholder": "your@email.com"
+    },
+    {
+      "name": "phone",
+      "label": "Phone Number",
+      "type": "tel",
+      "required": false,
+      "placeholder": "+1 (555) 000-0000"
+    }
+  ]
+}
+```
+
+#### Publishing Metadata (Migration 002)
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| publish_status | VARCHAR(50) | NOT NULL, CHECK | 'draft' | Current publishing status |
+| published_url | VARCHAR(2048) | NULLABLE | NULL | Public URL where page is accessible |
+| published_at | TIMESTAMP | NULLABLE | NULL | When page was first published |
+
+**Valid publish_status values:**
+- `draft` - Work in progress, not public
+- `published` - Live and publicly accessible
+- `unpublished` - Was published but taken down
+- `scheduled` - Scheduled for future publish (Phase 2+)
+
+#### Legacy/Audit Fields
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| content_json | JSONB | NOT NULL | '{}' | Legacy flexible storage |
+| status | VARCHAR(50) | NOT NULL, CHECK (draft/published/archived) | 'draft' | Legacy status field |
 | created_by | INTEGER | NOT NULL, FK → users(id) | - | Creator user ID |
 | created_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | Creation time |
 | updated_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | Last update time |
@@ -117,9 +203,12 @@ UQ = Unique Constraint
 **Indexes:**
 - `idx_landing_pages_slug` on `slug`
 - `idx_landing_pages_status` on `status`
+- `idx_landing_pages_publish_status` on `publish_status` *(Migration 002)*
+- `idx_landing_pages_published_at` on `published_at DESC NULLS LAST` *(Migration 002)*
 - `idx_landing_pages_created_by` on `created_by`
 - `idx_landing_pages_created_at` on `created_at DESC`
 - `idx_landing_pages_content_json` (GIN index) on `content_json`
+- `idx_landing_pages_form_fields` (GIN index) on `form_fields` *(Migration 002)*
 
 **Foreign Keys:**
 - `created_by` → `users(id)` ON DELETE RESTRICT ON UPDATE CASCADE
@@ -127,40 +216,30 @@ UQ = Unique Constraint
 **Triggers:**
 - `trigger_landing_pages_updated_at` - Auto-updates `updated_at` on row update
 
-**Valid Statuses:**
-- `draft` - Work in progress
-- `published` - Live on website
-- `archived` - No longer active
-
-**Content JSON Structure Example:**
-```json
-{
-  "sections": [
-    {
-      "type": "hero",
-      "title": "Welcome to Our Product",
-      "subtitle": "The best solution for your needs",
-      "image": "https://example.com/hero.jpg"
-    },
-    {
-      "type": "features",
-      "items": [
-        {"title": "Fast", "description": "Lightning speed"},
-        {"title": "Secure", "description": "Bank-level security"}
-      ]
-    },
-    {
-      "type": "cta",
-      "buttonText": "Get Started",
-      "formFields": ["name", "email", "phone"]
-    }
-  ],
-  "meta": {
-    "seoTitle": "Product Landing Page",
-    "seoDescription": "Best product in the market",
-    "keywords": ["product", "solution"]
-  }
-}
+**Example Phase 1 Landing Page:**
+```sql
+INSERT INTO landing_pages (
+  title, slug, headline, subheading, body_text,
+  cta_text, hero_image_url, form_fields,
+  publish_status, created_by
+) VALUES (
+  'Free Marketing Guide 2025',
+  'free-marketing-guide-2025',
+  'Download Your Free Digital Marketing Guide',
+  'Learn the latest strategies that drive results',
+  'Our comprehensive 50-page guide covers SEO, social media, content marketing...',
+  'Get Your Free Guide',
+  'https://example.com/images/hero.jpg',
+  '{
+    "fields": [
+      {"name": "name", "label": "Full Name", "type": "text", "required": true},
+      {"name": "email", "label": "Work Email", "type": "email", "required": true},
+      {"name": "company", "label": "Company", "type": "text", "required": false}
+    ]
+  }'::jsonb,
+  'draft',
+  1
+);
 ```
 
 ---
@@ -169,15 +248,84 @@ UQ = Unique Constraint
 
 **Purpose:** Store marketing leads from all sources
 
+#### Core Fields
+
 | Column | Type | Constraints | Default | Description |
 |--------|------|-------------|---------|-------------|
 | id | SERIAL | PRIMARY KEY | auto | Lead ID |
 | landing_page_id | INTEGER | NULLABLE, FK → landing_pages(id) | NULL | Source landing page |
+
+#### Basic Contact Information
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
 | name | VARCHAR(255) | NOT NULL | - | Lead full name |
 | email | VARCHAR(255) | NOT NULL, CHECK (email format) | - | Lead email |
 | phone | VARCHAR(50) | NULLABLE | NULL | Lead phone number |
-| source | VARCHAR(100) | NOT NULL, CHECK (valid sources) | 'landing_page' | Lead source |
+
+#### Additional Contact Details (Migration 003)
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| company | VARCHAR(255) | NULLABLE | NULL | Company/organization name (B2B) |
+| job_title | VARCHAR(255) | NULLABLE | NULL | Job title/role (B2B) |
+| message | TEXT | NULLABLE | NULL | Custom message/notes from form |
+
+#### Source Attribution
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| source | VARCHAR(100) | NOT NULL, CHECK (valid sources) | 'landing_page' | Lead source category |
+| source_details | VARCHAR(500) | NULLABLE | NULL | Specific source identifier *(Migration 003)* |
+| referrer_url | VARCHAR(2048) | NULLABLE | NULL | HTTP Referrer (traffic source) *(Migration 003)* |
+| landing_url | VARCHAR(2048) | NULLABLE | NULL | Full URL with UTM parameters *(Migration 003)* |
+
+**Valid Sources:**
+- `landing_page` - From landing page form
+- `webinar` - From webinar registration
+- `social_media` - From social media campaign
+- `wordpress_form` - From WordPress contact form
+- `manual` - Manually entered
+- `csv_import` - Bulk CSV import
+- `other` - Other sources
+
+**Source Attribution Examples:**
+```
+source: "landing_page"
+source_details: "LP: free-marketing-guide-2025"
+referrer_url: "https://google.com/search?q=marketing+automation"
+landing_url: "https://innovateelectronics.com/lp/free-marketing-guide-2025?utm_source=google&utm_medium=organic"
+```
+
+#### Technical Metadata (Migration 003)
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
+| user_agent | VARCHAR(500) | NULLABLE | NULL | Browser/device user agent string |
+| ip_address | VARCHAR(45) | NULLABLE | NULL | IPv4/IPv6 address (privacy-sensitive) |
+
+**Privacy Note:** `user_agent` and `ip_address` are considered personal data under GDPR/CCPA. Handle according to privacy policies and data retention requirements.
+
+#### Lead Management
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
 | status | VARCHAR(50) | NOT NULL, CHECK (valid statuses) | 'new' | Lead status |
+
+**Valid Statuses:**
+- `new` - Just captured, not contacted
+- `contacted` - Initial contact made
+- `qualified` - Meets qualification criteria
+- `in_progress` - Actively being worked on
+- `converted` - Successfully converted to customer
+- `closed_won` - Deal closed successfully
+- `closed_lost` - Deal lost
+- `unqualified` - Does not meet criteria
+
+#### Audit Fields
+
+| Column | Type | Constraints | Default | Description |
+|--------|------|-------------|---------|-------------|
 | created_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | Lead capture time |
 | updated_at | TIMESTAMP | NOT NULL | CURRENT_TIMESTAMP | Last update time |
 
@@ -190,6 +338,10 @@ UQ = Unique Constraint
 - `idx_leads_name` on `name`
 - `idx_leads_source_status` (composite) on `(source, status)`
 - `idx_leads_landing_page_status` (composite) on `(landing_page_id, status)`
+- `idx_leads_source_details` (partial) on `source_details WHERE source_details IS NOT NULL` *(Migration 003)*
+- `idx_leads_company` (partial) on `company WHERE company IS NOT NULL` *(Migration 003)*
+- `idx_leads_ip_address` (partial) on `ip_address WHERE ip_address IS NOT NULL` *(Migration 003)*
+- `idx_leads_referrer_url_pattern` (partial) on `referrer_url text_pattern_ops WHERE referrer_url IS NOT NULL` *(Migration 003)*
 
 **Foreign Keys:**
 - `landing_page_id` → `landing_pages(id)` ON DELETE SET NULL ON UPDATE CASCADE
@@ -197,24 +349,29 @@ UQ = Unique Constraint
 **Triggers:**
 - `trigger_leads_updated_at` - Auto-updates `updated_at` on row update
 
-**Valid Sources:**
-- `landing_page` - From landing page form
-- `webinar` - From webinar registration
-- `social_media` - From social media campaign
-- `wordpress_form` - From WordPress contact form
-- `manual` - Manually entered
-- `csv_import` - Bulk CSV import
-- `other` - Other sources
-
-**Valid Statuses:**
-- `new` - Just captured, not contacted
-- `contacted` - Initial contact made
-- `qualified` - Meets qualification criteria
-- `in_progress` - Actively being worked on
-- `converted` - Successfully converted to customer
-- `closed_won` - Deal closed successfully
-- `closed_lost` - Deal lost
-- `unqualified` - Does not meet criteria
+**Example Phase 1 Lead:**
+```sql
+INSERT INTO leads (
+  landing_page_id, name, email, phone,
+  company, job_title, message,
+  source, source_details, referrer_url, landing_url,
+  user_agent, status
+) VALUES (
+  1,
+  'Michael Chen',
+  'michael.chen@techcorp.com',
+  '+1-555-2002',
+  'TechCorp Solutions',
+  'VP of Marketing',
+  'Interested in enterprise pricing and demo',
+  'landing_page',
+  'LP: contact-us',
+  'https://google.com',
+  'https://innovateelectronics.com/contact?utm_source=google&utm_medium=cpc',
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0',
+  'new'
+);
+```
 
 ---
 
@@ -391,29 +548,51 @@ ORDER BY created_at DESC;
 
 ## 📊 Data Migration Plan
 
-### Phase 1: Current Tables (Completed)
-✅ users
-✅ landing_pages
-✅ leads
+### Migration 001: Core Tables (Completed ✅)
+- ✅ users (basic user authentication)
+- ✅ landing_pages (basic structure)
+- ✅ leads (lead capture)
+- ✅ Triggers for updated_at
+- ✅ Sample seed data
 
-### Phase 2: Social Media (Future)
+### Migration 002: Phase 1 Landing Pages Extension (Completed ✅)
+- ✅ Content fields (headline, subheading, body_text, cta_text, hero_image_url)
+- ✅ Form configuration (form_fields JSONB)
+- ✅ Publishing metadata (publish_status, published_url, published_at)
+- ✅ Indexes for performance
+- ✅ Sample Phase 1 data
+
+### Migration 003: Phase 1 Leads Refinement (Completed ✅)
+- ✅ Additional contact fields (company, job_title, message)
+- ✅ Source attribution (source_details, referrer_url, landing_url)
+- ✅ Technical metadata (user_agent, ip_address)
+- ✅ Indexes for attribution analysis
+- ✅ Sample leads with full tracking data
+
+### Future Migrations
+
+#### Phase 2: Social Media
 - social_accounts
 - social_posts
 - social_analytics
+- social_media_metrics
 
-### Phase 3: SEO & Analytics (Future)
+#### Phase 3: SEO & Analytics
 - seo_metrics
 - keywords
 - analytics_snapshots
+- page_performance
 
-### Phase 4: Reporting (Future)
+#### Phase 4: Reporting
 - reports
 - report_schedules
+- report_templates
 
-### Phase 5: Advanced Features (Future)
+#### Phase 5: Advanced Features
 - campaigns
 - email_templates
 - automation_workflows
+- landing_page_templates
 
 ---
 

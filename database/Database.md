@@ -1,19 +1,109 @@
-# DMAT Database Migrations
+# DMAT Database Setup & Migrations
 
-This directory contains all database migrations for the DMAT project.
+This directory contains all database migrations and setup scripts for the DMAT project.
 
 ## 📁 Directory Structure
 
 ```
 database/
 ├── migrations/
-│   ├── 001_create_core_tables.sql       # Creates users, landing_pages, leads
-│   ├── 001_rollback_core_tables.sql     # Rollback for migration 001
-│   └── ... (future migrations)
-└── README.md                             # This file
+│   ├── 001_create_core_tables.sql              # Creates users, landing_pages, leads
+│   ├── 001_rollback_core_tables.sql            # Rollback for migration 001
+│   ├── 002_extend_landing_pages.sql            # Phase 1 landing page fields
+│   ├── 002_rollback_extend_landing_pages.sql   # Rollback for migration 002
+│   ├── 003_refine_leads.sql                    # Phase 1 lead tracking fields
+│   └── 003_rollback_refine_leads.sql           # Rollback for migration 003
+├── MIGRATION_GUIDE.md                          # Complete migration guide
+├── MIGRATION_SUMMARY.md                        # Migration summary & status
+├── verify_migrations.sql                       # Database verification script
+├── setup.sh                                    # Automated setup script (Mac/Linux)
+└── Database.md                                 # This file
 ```
 
+## 📚 Quick Links
+
+- **[MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)** - Complete step-by-step migration instructions
+- **[MIGRATION_SUMMARY.md](./MIGRATION_SUMMARY.md)** - Migration status and overview
+- **[Database Schema Docs](../docs/Database-Schema.md)** - Full schema documentation
+
 ## 🚀 Quick Start
+
+### Option 1: Use the Migration Guide (Recommended)
+
+For complete step-by-step instructions, see **[MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)**
+
+### Option 2: Quick Setup (Fresh Database)
+
+```bash
+# 1. Create database
+createdb dmat_dev
+
+# 2. Run all migrations in order
+cd database
+psql -d dmat_dev -f migrations/001_create_core_tables.sql
+psql -d dmat_dev -f migrations/002_extend_landing_pages.sql
+psql -d dmat_dev -f migrations/003_refine_leads.sql
+
+# 3. Verify everything worked
+psql -d dmat_dev -f verify_migrations.sql
+```
+
+### Option 3: Automated Setup (Mac/Linux)
+
+```bash
+# Run the setup script
+cd database
+chmod +x setup.sh
+./setup.sh setup
+```
+
+---
+
+## ✅ Verification
+
+After running migrations, verify your database:
+
+```bash
+psql -d dmat_dev -f verify_migrations.sql
+```
+
+**Expected Output:**
+- ✅ 3 tables created (users, landing_pages, leads)
+- ✅ 5+ users with sample data
+- ✅ 4+ landing pages with Phase 1 fields
+- ✅ 8+ leads with tracking data
+- ✅ 2 foreign key constraints
+- ✅ 25 indexes for performance
+
+---
+
+## 📋 Migration List
+
+| # | Migration | Status | Description |
+|---|-----------|--------|-------------|
+| 001 | `001_create_core_tables.sql` | ✅ Required | Core tables (users, landing_pages, leads) |
+| 002 | `002_extend_landing_pages.sql` | ✅ Required | Phase 1 landing page fields |
+| 003 | `003_refine_leads.sql` | ✅ Required | Phase 1 lead tracking fields |
+
+See [MIGRATION_SUMMARY.md](./MIGRATION_SUMMARY.md) for detailed information.
+
+---
+
+## 🔄 Rollback
+
+If you need to undo migrations (reverse order):
+
+```bash
+psql -d dmat_dev -f migrations/003_rollback_refine_leads.sql
+psql -d dmat_dev -f migrations/002_rollback_extend_landing_pages.sql
+psql -d dmat_dev -f migrations/001_rollback_core_tables.sql
+```
+
+**⚠️ Warning:** Rollback will delete all data in the affected columns/tables!
+
+---
+
+## 📖 Original Setup Instructions
 
 ### Prerequisites
 
@@ -34,17 +124,17 @@ sudo systemctl start postgresql
 # Start via Services or pg_ctl
 ```
 
-### 1. Create Database
+### Manual Database Creation
 
 ```bash
 # Connect to PostgreSQL
 psql -U postgres
 
 # Create database
-CREATE DATABASE dmat_db;
+CREATE DATABASE dmat_dev;
 
 # Grant privileges (optional)
-GRANT ALL PRIVILEGES ON DATABASE dmat_db TO your_user;
+GRANT ALL PRIVILEGES ON DATABASE dmat_dev TO your_user;
 
 # Exit
 \q
