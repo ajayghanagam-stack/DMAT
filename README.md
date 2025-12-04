@@ -62,8 +62,6 @@ Get the full stack running (Frontend ↔ Backend ↔ Database):
 
 > **📌 Platform Support:** This README includes specific instructions for both **Windows** and **Mac** users. Look for platform-specific sections throughout the guide.
 
-**📖 Complete Setup Guide:** [Phase 0 Task 7 Setup](./docs/Phase0-Task7-Setup.md)
-
 **Quick Steps:**
 1. **Setup Database:** Create PostgreSQL database `dmat_dev` and run migrations
    - [Mac/Linux Instructions](#2-database-setup)
@@ -728,7 +726,6 @@ npm run test:e2e
 ### Project Documentation
 - **[DMAT Project Specification](./docs/DMAT.md)** - Complete project overview, features, tech stack, and implementation phases
 - **[MVP Scope & Non-Goals](./docs/MVP-Scope.md)** - Detailed MVP scope, what's included/excluded, success criteria
-- **[Phase 0 Task 7 Setup](./docs/Phase0-Task7-Setup.md)** - Full stack setup guide
 
 ### Database Documentation
 - **[Database Setup Guide](./database/Database.md)** - Setup, migration commands, troubleshooting
@@ -740,9 +737,9 @@ npm run test:e2e
 
 **Core Specifications:**
 - **[Success Criteria](./docs/Phase1-Success-Criteria.md)** - Definition of done for Phase 1
-- **[Database Schema](./docs/Phase1-Database-Schema.md)** - Landing pages and leads tables
-- **[Database Migrations](./docs/Phase1-Database-Migrations.md)** - SQL migration scripts
-- **[Landing Page Lifecycle](./docs/Phase1-Landing-Page-Lifecycle.md)** - State management (draft → published)
+- **[Landing Page Schema](./docs/Phase1-LandingPage-Schema.md)** - Landing pages table structure and migrations
+- **[Lead Schema](./docs/Phase1-Lead-Schema.md)** - Leads table structure and migrations
+- **[Landing Page Lifecycle](./docs/Phase1-LandingPage-Lifecycle.md)** - State management (draft → published)
 - **[User Flows](./docs/Phase1-User-Flows.md)** - Step-by-step workflows
 
 **Backend API Specifications:**
@@ -940,11 +937,6 @@ For issues and questions:
 ---
 
 ## 🗺 Roadmap
-
-### Phase 0 - Foundation ✅
-- Backend, database, hosting setup
-- Full stack connectivity (Frontend ↔ Backend ↔ Database)
-- Development environment ready
 
 ### Phase 1 - MVP Planning ✅ COMPLETE
 **Landing Page Builder & Lead Management - Planning Complete**
