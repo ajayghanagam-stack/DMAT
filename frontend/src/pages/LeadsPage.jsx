@@ -68,7 +68,7 @@ function LeadsPage() {
       lead.name?.toLowerCase().includes(query) ||
       lead.email?.toLowerCase().includes(query) ||
       lead.phone?.toLowerCase().includes(query) ||
-      lead.landing_page_title?.toLowerCase().includes(query)
+      lead.landing_page?.title?.toLowerCase().includes(query)
     );
   });
 
@@ -208,10 +208,10 @@ function LeadsPage() {
                     <td className="lead-email">{lead.email}</td>
                     <td className="lead-phone">{lead.phone || '-'}</td>
                     <td className="lead-source">
-                      {lead.landing_page_title || 'Unknown'}
+                      {lead.landing_page?.title || 'Unknown'}
                     </td>
                     <td>{getStatusBadge(lead.status)}</td>
-                    <td className="lead-date">{formatDate(lead.submitted_at)}</td>
+                    <td className="lead-date">{formatDate(lead.created_at)}</td>
                     <td>
                       <button
                         className="view-button"
@@ -267,11 +267,11 @@ function LeadsPage() {
               <h3>Source</h3>
               <div className="detail-item">
                 <span className="detail-label">Landing Page:</span>
-                <span className="detail-value">{selectedLead.landing_page_title || 'Unknown'}</span>
+                <span className="detail-value">{selectedLead.landing_page?.title || 'Unknown'}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Submitted:</span>
-                <span className="detail-value">{formatDate(selectedLead.submitted_at)}</span>
+                <span className="detail-value">{formatDate(selectedLead.created_at)}</span>
               </div>
             </div>
 
@@ -313,20 +313,20 @@ function LeadsPage() {
               </div>
             </div>
 
-            {selectedLead.metadata && (
+            {(selectedLead.ip_address || selectedLead.user_agent) && (
               <div className="detail-section">
                 <h3>Metadata</h3>
-                {selectedLead.metadata.ip_address && (
+                {selectedLead.ip_address && (
                   <div className="detail-item">
                     <span className="detail-label">IP Address:</span>
-                    <span className="detail-value">{selectedLead.metadata.ip_address}</span>
+                    <span className="detail-value">{selectedLead.ip_address}</span>
                   </div>
                 )}
-                {selectedLead.metadata.user_agent && (
+                {selectedLead.user_agent && (
                   <div className="detail-item">
                     <span className="detail-label">User Agent:</span>
                     <span className="detail-value" style={{ fontSize: '12px', wordBreak: 'break-all' }}>
-                      {selectedLead.metadata.user_agent}
+                      {selectedLead.user_agent}
                     </span>
                   </div>
                 )}
