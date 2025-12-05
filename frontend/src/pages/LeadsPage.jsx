@@ -103,6 +103,11 @@ function LeadsPage() {
     });
   };
 
+  const formatPhone = (phone) => {
+    if (!phone || phone.trim() === '') return '-';
+    return phone.trim();
+  };
+
   return (
     <div className="leads-page">
       <div className="leads-main">
@@ -206,7 +211,7 @@ function LeadsPage() {
                   >
                     <td className="lead-name">{lead.name}</td>
                     <td className="lead-email">{lead.email}</td>
-                    <td className="lead-phone">{lead.phone || '-'}</td>
+                    <td className="lead-phone">{formatPhone(lead.phone)}</td>
                     <td className="lead-source">
                       {lead.landing_page?.title || 'Unknown'}
                     </td>
