@@ -105,7 +105,27 @@ function LeadsPage() {
 
   const formatPhone = (phone) => {
     if (!phone || phone.trim() === '') return '-';
-    return phone.trim();
+
+    // Remove all non-digit characters
+    const cleaned = phone.replace(/\D/g, '');
+
+    // If no digits, return dash
+    if (cleaned.length === 0) return '-';
+
+    // Format based on length
+    if (cleaned.length === 10) {
+      // US format: (123) 456-7890
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    } else if (cleaned.length === 11 && cleaned[0] === '1') {
+      // US with country code: +1 (123) 456-7890
+      return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
+    } else if (cleaned.length > 10) {
+      // International: +XX XXX XXX XXXX
+      return `+${cleaned.slice(0, cleaned.length - 10)} ${cleaned.slice(-10, -7)} ${cleaned.slice(-7, -4)} ${cleaned.slice(-4)}`;
+    } else {
+      // Less than 10 digits: just add dashes
+      return cleaned.replace(/(\d{3})(\d{3})(\d+)/, '$1-$2-$3');
+    }
   };
 
   return (
