@@ -213,7 +213,7 @@ function LeadsPage() {
                     <td className="lead-email">{lead.email}</td>
                     <td className="lead-phone">{formatPhone(lead.phone)}</td>
                     <td className="lead-source">
-                      {lead.landing_page?.title || 'Unknown'}
+                      {lead.landing_page?.title || lead.source || 'Direct'}
                     </td>
                     <td>{getStatusBadge(lead.status)}</td>
                     <td className="lead-date">{formatDate(lead.created_at)}</td>
@@ -271,8 +271,8 @@ function LeadsPage() {
             <div className="detail-section">
               <h3>Source</h3>
               <div className="detail-item">
-                <span className="detail-label">Landing Page:</span>
-                <span className="detail-value">{selectedLead.landing_page?.title || 'Unknown'}</span>
+                <span className="detail-label">Source:</span>
+                <span className="detail-value">{selectedLead.landing_page?.title || selectedLead.source || 'Direct'}</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Submitted:</span>
