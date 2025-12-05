@@ -1,0 +1,272 @@
+.leads-page {
+  display: flex;
+  height: 100%;
+}
+
+.leads-main {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.export-button {
+  padding: 10px 20px;
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-button:hover {
+  background: #667eea;
+  color: white;
+}
+
+.leads-table-container {
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.leads-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leads-table thead {
+  background: #f7fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.leads-table th {
+  padding: 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.leads-table tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.2s;
+}
+
+.leads-table tbody tr:hover {
+  background: #f7fafc;
+}
+
+.leads-table tbody tr.selected {
+  background: #edf2f7;
+}
+
+.leads-table td {
+  padding: 16px;
+  font-size: 14px;
+  color: #2d3748;
+}
+
+.lead-name {
+  font-weight: 600;
+}
+
+.lead-email {
+  color: #667eea;
+}
+
+.lead-phone {
+  color: #718096;
+}
+
+.lead-source {
+  color: #4a5568;
+}
+
+.lead-date {
+  color: #718096;
+  font-size: 13px;
+}
+
+.view-button {
+  padding: 6px 16px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-button:hover {
+  background: #5568d3;
+}
+
+.lead-detail-panel {
+  width: 400px;
+  background: white;
+  border-left: 2px solid #e2e8f0;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #1a202c;
+}
+
+.close-button {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #718096;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-button:hover {
+  background: #f7fafc;
+  color: #2d3748;
+}
+
+.panel-content {
+  padding: 24px;
+}
+
+.detail-section {
+  margin-bottom: 32px;
+}
+
+.detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  color: #1a202c;
+  font-weight: 600;
+}
+
+.detail-item {
+  display: flex;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #718096;
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  color: #2d3748;
+  flex: 1;
+}
+
+.detail-value a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.detail-value a:hover {
+  text-decoration: underline;
+}
+
+.status-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.status-action-button {
+  padding: 8px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.status-action-button:hover:not(:disabled) {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.status-action-button:disabled {
+  background: #f7fafc;
+  color: #cbd5e0;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1200px) {
+  .leads-page {
+    flex-direction: column;
+  }
+
+  .lead-detail-panel {
+    width: 100%;
+    border-left: none;
+    border-top: 2px solid #e2e8f0;
+    max-height: 50vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .leads-main {
+    padding: 16px;
+  }
+
+  .leads-table-container {
+    overflow-x: auto;
+  }
+
+  .leads-table {
+    min-width: 800px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .export-button {
+    width: 100%;
+  }
+
+  .page-toolbar {
+    flex-direction: column;
+  }
+}
