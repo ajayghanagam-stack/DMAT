@@ -1,36 +1,122 @@
 /**
  * Authentication Middleware
- * Simple authentication for Phase 1 (will be enhanced with JWT in Task 11)
+ * JWT-based authentication for API endpoints
  */
+
+import jwt from 'jsonwebtoken';
 
 /**
- * Temporary authentication middleware
- * For Phase 1 testing, we'll use a simple user_id from headers
- * TODO: Replace with proper JWT authentication in Task 11
+ * JWT Authentication Middleware
+ * Verifies JWT token from Authorization header
+ * Attaches decoded user data to req.user
  */
 export const authenticate = (req, res, next) => {
-  // For now, accept user_id from header for testing
-  // In production, this will validate JWT token
-  const userId = req.headers['x-user-id'] || req.headers['user-id'];
+  try {
+    // Get token from Authorization header (format: "Bearer <token>")
+    const authHeader = req.headers.authorization || req.headers.Authorization;
 
-  if (!userId) {
+    if (!authHeader) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Authentication required',
+        error: {
+          code: 'NO_TOKEN',
+          message: 'No authorization header provided. Please include Authorization header with Bearer token.'
+        }
+      });
+    }
+
+    // Check if it's a Bearer token
+    if (!authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Invalid token format',
+        error: {
+          code: 'INVALID_TOKEN_FORMAT',
+          message: 'Authorization header must be in format: Bearer <token>'
+        }
+      });
+    }
+
+    // Extract token
+    const token = authHeader.substring(7); // Remove "Bearer " prefix
+
+    if (!token) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Authentication required',
+        error: {
+          code: 'NO_TOKEN',
+          message: 'No token provided in Authorization header.'
+        }
+      });
+    }
+
+    // Verify token
+    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+
+    const decoded = jwt.verify(token, jwtSecret, {
+      issuer: 'dmat-api',
+      audience: 'dmat-client'
+    });
+
+    // Attach user data to request
+    req.user = {
+      id: decoded.userId,
+      email: decoded.email,
+      role: decoded.role
+    };
+
+    next();
+
+  } catch (error) {
+    // Handle specific JWT errors
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Token has expired',
+        error: {
+          code: 'TOKEN_EXPIRED',
+          message: 'Your session has expired. Please log in again.',
+          expiredAt: error.expiredAt
+        }
+      });
+    }
+
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Invalid token',
+        error: {
+          code: 'INVALID_TOKEN',
+          message: 'The provided token is invalid or malformed.'
+        }
+      });
+    }
+
+    if (error.name === 'NotBeforeError') {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Token not yet valid',
+        error: {
+          code: 'TOKEN_NOT_ACTIVE',
+          message: 'This token is not yet active.',
+          date: error.date
+        }
+      });
+    }
+
+    // Generic error
+    console.error('Authentication error:', error);
     return res.status(401).json({
-      success: false,
+      status: 'error',
+      message: 'Authentication failed',
       error: {
-        code: 'UNAUTHORIZED',
-        message: 'Authentication required. Please provide user-id header.',
-        statusCode: 401
+        code: 'AUTH_ERROR',
+        message: 'An error occurred during authentication.'
       }
     });
   }
-
-  // Attach user to request
-  req.user = {
-    id: parseInt(userId),
-    role: 'admin' // For now, assume admin role
-  };
-
-  next();
 };
 
 /**

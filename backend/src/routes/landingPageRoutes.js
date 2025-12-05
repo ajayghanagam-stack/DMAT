@@ -11,7 +11,8 @@ import {
   updateLandingPage,
   deleteLandingPage,
   publishLandingPage,
-  getLandingPageStats
+  getLandingPageStats,
+  previewLandingPage
 } from '../controllers/landingPageController.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import {
@@ -30,6 +31,12 @@ router.use(authenticate);
  * Get landing page statistics
  */
 router.get('/stats', getLandingPageStats);
+
+/**
+ * GET /api/admin/landing-pages/:id/preview
+ * Preview landing page (returns HTML)
+ */
+router.get('/:id/preview', validateIdParam, previewLandingPage);
 
 /**
  * POST /api/admin/landing-pages

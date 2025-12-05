@@ -1,91 +1,93 @@
-import { useState, useEffect } from 'react'
-import './App.css'
-import { getHealth, getDbStatus } from './services/api'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
+import LoginPage from './pages/LoginPage';
+import LandingPagesPage from './pages/LandingPagesPage';
+import LandingPageFormPage from './pages/LandingPageFormPage';
+import PreviewPage from './pages/PreviewPage';
+import LeadsPage from './pages/LeadsPage';
+import './App.css';
 
 function App() {
-  const [backendStatus, setBackendStatus] = useState('checking...')
-  const [dbStatus, setDbStatus] = useState('checking...')
-  const [userCount, setUserCount] = useState(null)
-
-  useEffect(() => {
-    // Check backend health
-    getHealth()
-      .then(data => {
-        setBackendStatus(data.status)
-      })
-      .catch(error => {
-        console.error('Backend health check failed:', error)
-        setBackendStatus('offline')
-      })
-
-    // Check database connection
-    getDbStatus()
-      .then(data => {
-        setDbStatus(data.status)
-        if (data.data && data.data.userCount !== undefined) {
-          setUserCount(data.data.userCount)
-        }
-      })
-      .catch(error => {
-        console.error('Database check failed:', error)
-        setDbStatus('offline')
-      })
-  }, [])
-
-  const getStatusColor = (status) => {
-    if (status === 'ok') return '#10b981' // green
-    if (status === 'offline') return '#ef4444' // red
-    return '#f59e0b' // yellow/orange for checking
-  }
-
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1>DMAT – Digital Marketing Automation Tool</h1>
-      </header>
-      <main className="app-main">
-        <h2>Hello DMAT – Phase 0</h2>
-        <p>Frontend is successfully running!</p>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<LoginPage />} />
 
-        <div className="status-container">
-          <div className="status-item">
-            <span className="status-label">Backend Status:</span>
-            <span
-              className="status-value"
-              style={{ color: getStatusColor(backendStatus) }}
-            >
-              {backendStatus}
-            </span>
-          </div>
+          {/* Protected routes with layout */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Navigate to="/landing-pages" replace />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-          <div className="status-item">
-            <span className="status-label">Database Status:</span>
-            <span
-              className="status-value"
-              style={{ color: getStatusColor(dbStatus) }}
-            >
-              {dbStatus}
-            </span>
-          </div>
+          <Route
+            path="/landing-pages"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <LandingPagesPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-          {userCount !== null && (
-            <div className="status-item">
-              <span className="status-label">Users in Database:</span>
-              <span className="status-value" style={{ color: '#667eea' }}>
-                {userCount}
-              </span>
-            </div>
-          )}
-        </div>
+          <Route
+            path="/landing-pages/new"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <LandingPageFormPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-        {backendStatus === 'ok' && dbStatus === 'ok' && (
-          <div className="success-message">
-            ✅ All systems connected successfully!
-          </div>
-        )}
-      </main>
-    </div>
-  )
+          <Route
+            path="/landing-pages/:id/edit"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <LandingPageFormPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/landing-pages/:id/preview"
+            element={
+              <ProtectedRoute>
+                <PreviewPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/leads"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <LeadsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 404 catch-all */}
+          <Route path="*" element={<Navigate to="/landing-pages" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;

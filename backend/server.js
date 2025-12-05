@@ -3,6 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import healthRoutes from './src/routes/healthRoutes.js';
 import landingPageRoutes from './src/routes/landingPageRoutes.js';
+import leadRoutes from './src/routes/leadRoutes.js';
+import publicRoutes from './src/routes/publicRoutes.js';
+import authRoutes from './src/routes/authRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -11,10 +14,19 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+// Public API routes - allow all origins (for form submissions from any domain)
+app.use('/api/public', cors({
+  origin: '*',
+  methods: ['POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}));
+
+// Admin API routes - restrict to configured origin
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -26,7 +38,10 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/api', healthRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/admin/landing-pages', landingPageRoutes);
+app.use('/api/admin/leads', leadRoutes);
+app.use('/api/public', publicRoutes);
 
 // Root route
 app.get('/', (req, res) => {
@@ -37,15 +52,31 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/api/health',
       dbCheck: '/api/db-check',
-      landingPages: '/api/admin/landing-pages',
-      landingPagesCreate: 'POST /api/admin/landing-pages',
-      landingPagesList: 'GET /api/admin/landing-pages',
-      landingPageGet: 'GET /api/admin/landing-pages/:id',
-      landingPageUpdate: 'PUT /api/admin/landing-pages/:id',
-      landingPagePublish: 'POST /api/admin/landing-pages/:id/publish',
-      landingPageDelete: 'DELETE /api/admin/landing-pages/:id'
+      auth: {
+        login: 'POST /api/auth/login',
+        verify: 'GET /api/auth/verify'
+      },
+      landingPages: {
+        create: 'POST /api/admin/landing-pages',
+        list: 'GET /api/admin/landing-pages',
+        get: 'GET /api/admin/landing-pages/:id',
+        update: 'PUT /api/admin/landing-pages/:id',
+        publish: 'POST /api/admin/landing-pages/:id/publish',
+        delete: 'DELETE /api/admin/landing-pages/:id',
+        stats: 'GET /api/admin/landing-pages/stats',
+        preview: 'GET /api/admin/landing-pages/:id/preview'
+      },
+      leads: {
+        list: 'GET /api/admin/leads',
+        get: 'GET /api/admin/leads/:id',
+        update: 'PATCH /api/admin/leads/:id',
+        export: 'GET /api/admin/leads/export'
+      },
+      public: {
+        leadSubmit: 'POST /api/public/leads'
+      }
     },
-    note: 'All /api/admin/* endpoints require authentication. Use x-user-id header for testing.'
+    note: 'Admin endpoints require Authorization header with Bearer token. Public endpoints (/api/public/*) require no authentication.'
   });
 });
 
@@ -78,7 +109,10 @@ app.listen(PORT, () => {
   console.log(`   Health Check:`);
   console.log(`   - GET  /api/health`);
   console.log(`   - GET  /api/db-check`);
-  console.log(`\n   Landing Pages (Phase 1):`);
+  console.log(`\n   Authentication:`);
+  console.log(`   - POST   /api/auth/login`);
+  console.log(`   - GET    /api/auth/verify`);
+  console.log(`\n   Landing Pages (Admin):`);
   console.log(`   - POST   /api/admin/landing-pages`);
   console.log(`   - GET    /api/admin/landing-pages`);
   console.log(`   - GET    /api/admin/landing-pages/:id`);
@@ -86,7 +120,16 @@ app.listen(PORT, () => {
   console.log(`   - POST   /api/admin/landing-pages/:id/publish`);
   console.log(`   - DELETE /api/admin/landing-pages/:id`);
   console.log(`   - GET    /api/admin/landing-pages/stats`);
-  console.log(`\n📝 Note: Admin endpoints require x-user-id header (e.g., x-user-id: 1)`);
+  console.log(`   - GET    /api/admin/landing-pages/:id/preview`);
+  console.log(`\n   Lead Management (Admin):`);
+  console.log(`   - GET    /api/admin/leads`);
+  console.log(`   - GET    /api/admin/leads/:id`);
+  console.log(`   - PATCH  /api/admin/leads/:id`);
+  console.log(`   - GET    /api/admin/leads/export`);
+  console.log(`\n   Lead Capture (Public):`);
+  console.log(`   - POST   /api/public/leads`);
+  console.log(`\n📝 Admin endpoints require Authorization header: Bearer <token>`);
+  console.log(`📝 Public endpoints require no authentication`);
   console.log('='.repeat(60));
 });
 
