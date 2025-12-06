@@ -482,14 +482,13 @@ export const exportLeads = async (req, res) => {
     // Get all leads (no pagination for export)
     const query = `
       SELECT
+        leads.id,
         leads.name,
         leads.email,
         leads.phone,
-        leads.company,
-        leads.job_title,
-        leads.created_at,
-        leads.referrer_url,
+        leads.source,
         leads.status,
+        leads.created_at,
         landing_pages.title as landing_page_title
       FROM leads
       LEFT JOIN landing_pages ON leads.landing_page_id = landing_pages.id
@@ -503,23 +502,21 @@ export const exportLeads = async (req, res) => {
     const csvRows = [];
 
     // Header row
-    csvRows.push('Name,Email,Phone,Company,Job Title,Landing Page,Created At,Source,Status');
+    csvRows.push('ID,Name,Email,Phone,Landing Page,Source,Status,Created At');
 
     // Data rows
     result.rows.forEach(row => {
-      const source = row.referrer_url ? extractDomain(row.referrer_url) : 'Direct';
       const createdAt = row.created_at ? new Date(row.created_at).toISOString().replace('T', ' ').substring(0, 19) : '';
 
       const fields = [
+        row.id || '',
         escapeCsv(row.name || ''),
         escapeCsv(row.email || ''),
         escapeCsv(row.phone || ''),
-        escapeCsv(row.company || ''),
-        escapeCsv(row.job_title || ''),
-        escapeCsv(row.landing_page_title || ''),
-        createdAt,
-        escapeCsv(source),
-        escapeCsv(row.status || '')
+        escapeCsv(row.landing_page_title || 'Direct'),
+        escapeCsv(row.source || 'landing_page'),
+        escapeCsv(row.status || 'new'),
+        createdAt
       ];
 
       csvRows.push(fields.join(','));
@@ -549,21 +546,6 @@ export const exportLeads = async (req, res) => {
     });
   }
 };
-
-/**
- * Helper function to extract domain from URL
- */
-function extractDomain(url) {
-  try {
-    const urlObj = new URL(url);
-    let domain = urlObj.hostname;
-    // Remove www. and m. prefixes
-    domain = domain.replace(/^(www\.|m\.)/, '');
-    return domain;
-  } catch {
-    return 'Direct';
-  }
-}
 
 /**
  * Helper function to escape CSV fields
