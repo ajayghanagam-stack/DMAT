@@ -47,7 +47,11 @@ function LeadsPage() {
 
   const handleExport = async () => {
     try {
-      const blob = await exportLeadsAPI({ status: statusFilter !== 'all' ? statusFilter : undefined });
+      const params = {};
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+      const blob = await exportLeadsAPI(params);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
