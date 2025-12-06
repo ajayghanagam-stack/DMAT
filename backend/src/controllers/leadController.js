@@ -435,16 +435,12 @@ export const updateLeadStatus = async (req, res) => {
  */
 export const exportLeads = async (req, res) => {
   try {
-    console.log('Export: Query params received:', req.query);
-
     // Extract same filters as list (to export filtered results)
     const search = req.query.search || null;
     const landing_page_id = req.query.landing_page_id ? parseInt(req.query.landing_page_id) : null;
     const status = req.query.status && req.query.status !== 'undefined' ? req.query.status : null;
     const date_from = req.query.date_from || null;
     const date_to = req.query.date_to || null;
-
-    console.log('Export: Parsed filters:', { search, landing_page_id, status, date_from, date_to });
 
     // Build WHERE clause
     const conditions = [];
@@ -502,8 +498,6 @@ export const exportLeads = async (req, res) => {
 
     const result = await pool.query(query, values);
 
-    console.log(`Export: Found ${result.rows.length} leads`);
-
     // Build CSV
     const csvRows = [];
 
@@ -529,9 +523,6 @@ export const exportLeads = async (req, res) => {
     });
 
     const csv = csvRows.join('\n');
-
-    console.log(`Export: Generated CSV with ${csvRows.length} rows (including header)`);
-    console.log(`Export: CSV preview:\n${csv.substring(0, 500)}`);
 
     // Generate filename with today's date
     const today = new Date().toISOString().split('T')[0];

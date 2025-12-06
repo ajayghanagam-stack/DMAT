@@ -51,6 +51,9 @@ function LeadsPage() {
       if (statusFilter !== 'all') {
         params.status = statusFilter;
       }
+      if (searchQuery && searchQuery.trim() !== '') {
+        params.search = searchQuery.trim();
+      }
       const blob = await exportLeadsAPI(params);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
