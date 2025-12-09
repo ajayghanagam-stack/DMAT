@@ -8,6 +8,7 @@ import leadNoteRoutes from './src/routes/leadNoteRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
 import publicRoutes from './src/routes/publicRoutes.js';
 import authRoutes from './src/routes/authRoutes.js';
+import analyticsRoutes from './src/routes/analyticsRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -45,6 +46,7 @@ app.use('/api/admin/landing-pages', landingPageRoutes);
 app.use('/api/admin/leads', leadNoteRoutes); // Lead notes routes (must come before leadRoutes)
 app.use('/api/admin/leads', leadRoutes);
 app.use('/api/admin/users', userRoutes);
+app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/public', publicRoutes);
 
 // Root route
@@ -75,6 +77,9 @@ app.get('/', (req, res) => {
         get: 'GET /api/admin/leads/:id',
         update: 'PATCH /api/admin/leads/:id',
         export: 'GET /api/admin/leads/export'
+      },
+      analytics: {
+        dashboard: 'GET /api/admin/analytics/dashboard'
       },
       public: {
         leadSubmit: 'POST /api/public/leads'
@@ -130,6 +135,8 @@ app.listen(PORT, () => {
   console.log(`   - GET    /api/admin/leads/:id`);
   console.log(`   - PATCH  /api/admin/leads/:id`);
   console.log(`   - GET    /api/admin/leads/export`);
+  console.log(`\n   Analytics (Admin):`);
+  console.log(`   - GET    /api/admin/analytics/dashboard`);
   console.log(`\n   Lead Capture (Public):`);
   console.log(`   - POST   /api/public/leads`);
   console.log(`\n📝 Admin endpoints require Authorization header: Bearer <token>`);

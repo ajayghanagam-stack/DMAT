@@ -339,3 +339,14 @@ export const submitLead = async (data) => {
 export const getUsers = async () => {
   return await fetchWithAuth('/api/admin/users');
 };
+
+// ============================================================================
+// ANALYTICS APIs
+// ============================================================================
+
+/**
+ * Get dashboard analytics data
+ */
+export const getDashboardAnalytics = async () => {
+  return await fetchWithAuth('/api/admin/analytics/dashboard');
+};

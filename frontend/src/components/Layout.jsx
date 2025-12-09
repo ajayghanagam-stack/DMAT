@@ -26,6 +26,14 @@ function Layout({ children }) {
 
         <nav className="sidebar-nav">
           <Link
+            to="/dashboard"
+            className={`nav-item ${isActive('/dashboard') ? 'active' : ''}`}
+          >
+            <span className="nav-icon">📊</span>
+            <span>Dashboard</span>
+          </Link>
+
+          <Link
             to="/landing-pages"
             className={`nav-item ${isActive('/landing-pages') ? 'active' : ''}`}
           >

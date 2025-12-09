@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
 import LandingPagesPage from './pages/LandingPagesPage';
 import LandingPageFormPage from './pages/LandingPageFormPage';
 import PreviewPage from './pages/PreviewPage';
@@ -23,7 +24,18 @@ function App() {
             element={
               <ProtectedRoute>
                 <Layout>
-                  <Navigate to="/landing-pages" replace />
+                  <Navigate to="/dashboard" replace />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <DashboardPage />
                 </Layout>
               </ProtectedRoute>
             }
@@ -83,7 +95,7 @@ function App() {
           />
 
           {/* 404 catch-all */}
-          <Route path="*" element={<Navigate to="/landing-pages" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
