@@ -272,6 +272,18 @@ export const exportLeads = async (params = {}) => {
 };
 
 /**
+ * Assign lead to user
+ * @param {number} id - Lead ID
+ * @param {number|null} assigned_to - User ID to assign to (null to unassign)
+ */
+export const assignLead = async (id, assigned_to) => {
+  return await fetchWithAuth(`/api/admin/leads/${id}/assign`, {
+    method: 'PATCH',
+    body: JSON.stringify({ assigned_to }),
+  });
+};
+
+/**
  * Submit lead (public endpoint - no auth required)
  * @param {Object} data - Lead data
  */
@@ -285,4 +297,15 @@ export const submitLead = async (data) => {
   });
 
   return handleResponse(response);
+};
+
+// ============================================================================
+// USERS APIs
+// ============================================================================
+
+/**
+ * Get all users (for assignment dropdown)
+ */
+export const getUsers = async () => {
+  return await fetchWithAuth('/api/admin/users');
 };

@@ -3,6 +3,7 @@ import {
   listLeads,
   getLead,
   updateLeadStatus,
+  assignLead,
   exportLeads
 } from '../controllers/leadController.js';
 import { authenticate } from '../middleware/auth.js';
@@ -25,6 +26,12 @@ router.get('/export', exportLeads);
  * GET /api/admin/leads
  */
 router.get('/', listLeads);
+
+/**
+ * Assign lead to user - must come before /:id routes
+ * PATCH /api/admin/leads/:id/assign
+ */
+router.patch('/:id/assign', assignLead);
 
 /**
  * Get single lead details

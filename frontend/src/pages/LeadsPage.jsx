@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { getLeads, updateLeadStatus, exportLeads as exportLeadsAPI } from '../services/api';
+import { getLeads, updateLeadStatus, assignLead, getUsers, exportLeads as exportLeadsAPI } from '../services/api';
 import './LeadsPage.css';
 
 function LeadsPage() {
   const [leads, setLeads] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -12,7 +13,17 @@ function LeadsPage() {
 
   useEffect(() => {
     loadLeads();
+    loadUsers();
   }, [statusFilter]);
+
+  const loadUsers = async () => {
+    try {
+      const response = await getUsers();
+      setUsers(response.data || []);
+    } catch (err) {
+      console.error('Failed to load users:', err);
+    }
+  };
 
   const loadLeads = async () => {
     try {
@@ -42,6 +53,33 @@ function LeadsPage() {
       }
     } catch (err) {
       alert(`Failed to update status: ${err.message}`);
+    }
+  };
+
+  const handleAssignmentChange = async (leadId, userId) => {
+    try {
+      const assigned_to = userId === '' ? null : parseInt(userId);
+      const response = await assignLead(leadId, assigned_to);
+
+      // Update the lead in the list
+      setLeads(leads.map(lead =>
+        lead.id === leadId ? {
+          ...lead,
+          assigned_to: response.data.assigned_to,
+          assigned_user: response.data.assigned_user
+        } : lead
+      ));
+
+      // Update selected lead if it's the one being assigned
+      if (selectedLead?.id === leadId) {
+        setSelectedLead({
+          ...selectedLead,
+          assigned_to: response.data.assigned_to,
+          assigned_user: response.data.assigned_user
+        });
+      }
+    } catch (err) {
+      alert(`Failed to assign lead: ${err.message}`);
     }
   };
 
@@ -225,6 +263,7 @@ function LeadsPage() {
                   <th>Email</th>
                   <th>Phone</th>
                   <th>Source</th>
+                  <th>Assigned To</th>
                   <th>Status</th>
                   <th>Submitted</th>
                   <th></th>
@@ -241,6 +280,9 @@ function LeadsPage() {
                     <td className="lead-phone">{formatPhone(lead.phone)}</td>
                     <td className="lead-source">
                       {lead.landing_page?.title || lead.source || 'Direct'}
+                    </td>
+                    <td className="lead-assigned">
+                      {lead.assigned_user ? lead.assigned_user.name : '-'}
                     </td>
                     <td>{getStatusBadge(lead.status)}</td>
                     <td className="lead-date">{formatDate(lead.created_at)}</td>
@@ -304,6 +346,25 @@ function LeadsPage() {
               <div className="detail-item">
                 <span className="detail-label">Submitted:</span>
                 <span className="detail-value">{formatDate(selectedLead.created_at)}</span>
+              </div>
+            </div>
+
+            <div className="detail-section">
+              <h3>Assignment</h3>
+              <div className="detail-item">
+                <span className="detail-label">Assigned To:</span>
+                <select
+                  className="assign-dropdown"
+                  value={selectedLead.assigned_to || ''}
+                  onChange={(e) => handleAssignmentChange(selectedLead.id, e.target.value)}
+                >
+                  <option value="">Unassigned</option>
+                  {users.map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

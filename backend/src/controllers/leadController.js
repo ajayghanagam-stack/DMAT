@@ -33,6 +33,9 @@ export const listLeads = async (req, res) => {
       });
     }
 
+    // Extract assigned_to filter
+    const assigned_to = req.query.assigned_to || null;
+
     // Validate sort_by
     const validSortFields = ['name', 'email', 'created_at', 'status'];
     if (!validSortFields.includes(sort_by)) {
@@ -115,6 +118,18 @@ export const listLeads = async (req, res) => {
       values.push(date_to);
     }
 
+    if (assigned_to) {
+      if (assigned_to === 'unassigned') {
+        conditions.push(`leads.assigned_to IS NULL`);
+      } else if (assigned_to === 'assigned') {
+        conditions.push(`leads.assigned_to IS NOT NULL`);
+      } else {
+        paramCount++;
+        conditions.push(`leads.assigned_to = $${paramCount}`);
+        values.push(parseInt(assigned_to));
+      }
+    }
+
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     // Get total count
@@ -155,15 +170,21 @@ export const listLeads = async (req, res) => {
         leads.landing_url,
         leads.user_agent,
         leads.ip_address,
+        leads.assigned_to,
+        leads.assigned_at,
         leads.created_at,
         leads.updated_at,
         landing_pages.id as lp_id,
         landing_pages.title as lp_title,
         landing_pages.slug as lp_slug,
         landing_pages.published_url as lp_published_url,
-        landing_pages.publish_status as lp_publish_status
+        landing_pages.publish_status as lp_publish_status,
+        assigned_user.id as assigned_user_id,
+        assigned_user.name as assigned_user_name,
+        assigned_user.email as assigned_user_email
       FROM leads
       LEFT JOIN landing_pages ON leads.landing_page_id = landing_pages.id
+      LEFT JOIN users AS assigned_user ON leads.assigned_to = assigned_user.id
       ${whereClause}
       ORDER BY leads.${sort_by} ${sort_order}
       LIMIT $${limitParam} OFFSET $${offsetParam}
@@ -188,6 +209,8 @@ export const listLeads = async (req, res) => {
       landing_url: row.landing_url,
       user_agent: row.user_agent,
       ip_address: row.ip_address,
+      assigned_to: row.assigned_to,
+      assigned_at: row.assigned_at,
       created_at: row.created_at,
       updated_at: row.updated_at,
       landing_page: row.lp_id ? {
@@ -196,6 +219,11 @@ export const listLeads = async (req, res) => {
         slug: row.lp_slug,
         published_url: row.lp_published_url,
         publish_status: row.lp_publish_status
+      } : null,
+      assigned_user: row.assigned_user_id ? {
+        id: row.assigned_user_id,
+        name: row.assigned_user_name,
+        email: row.assigned_user_email
       } : null
     }));
 
@@ -216,7 +244,8 @@ export const listLeads = async (req, res) => {
         landing_page_id,
         status,
         date_from,
-        date_to
+        date_to,
+        assigned_to
       },
       sort: {
         sort_by,
@@ -273,15 +302,21 @@ export const getLead = async (req, res) => {
         leads.landing_url,
         leads.user_agent,
         leads.ip_address,
+        leads.assigned_to,
+        leads.assigned_at,
         leads.created_at,
         leads.updated_at,
         landing_pages.id as lp_id,
         landing_pages.title as lp_title,
         landing_pages.slug as lp_slug,
         landing_pages.published_url as lp_published_url,
-        landing_pages.publish_status as lp_publish_status
+        landing_pages.publish_status as lp_publish_status,
+        assigned_user.id as assigned_user_id,
+        assigned_user.name as assigned_user_name,
+        assigned_user.email as assigned_user_email
       FROM leads
       LEFT JOIN landing_pages ON leads.landing_page_id = landing_pages.id
+      LEFT JOIN users AS assigned_user ON leads.assigned_to = assigned_user.id
       WHERE leads.id = $1
     `;
 
@@ -315,6 +350,8 @@ export const getLead = async (req, res) => {
       landing_url: row.landing_url,
       user_agent: row.user_agent,
       ip_address: row.ip_address,
+      assigned_to: row.assigned_to,
+      assigned_at: row.assigned_at,
       created_at: row.created_at,
       updated_at: row.updated_at,
       landing_page: row.lp_id ? {
@@ -323,6 +360,11 @@ export const getLead = async (req, res) => {
         slug: row.lp_slug,
         published_url: row.lp_published_url,
         publish_status: row.lp_publish_status
+      } : null,
+      assigned_user: row.assigned_user_id ? {
+        id: row.assigned_user_id,
+        name: row.assigned_user_name,
+        email: row.assigned_user_email
       } : null
     };
 
@@ -423,6 +465,125 @@ export const updateLeadStatus = async (req, res) => {
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while updating lead status',
+        statusCode: 500
+      }
+    });
+  }
+};
+
+/**
+ * Assign lead to user
+ * PATCH /api/admin/leads/:id/assign
+ */
+export const assignLead = async (req, res) => {
+  try {
+    const leadId = parseInt(req.params.id);
+    const { assigned_to } = req.body;
+
+    if (!leadId || isNaN(leadId)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid lead ID',
+          statusCode: 400
+        }
+      });
+    }
+
+    // Check if lead exists
+    const checkLeadQuery = 'SELECT id FROM leads WHERE id = $1';
+    const checkLeadResult = await pool.query(checkLeadQuery, [leadId]);
+
+    if (checkLeadResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'LEAD_NOT_FOUND',
+          message: 'Lead not found',
+          statusCode: 404
+        }
+      });
+    }
+
+    // If assigned_to is null, unassign the lead
+    if (assigned_to === null) {
+      const updateQuery = `
+        UPDATE leads
+        SET assigned_to = NULL, assigned_at = NULL, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1
+        RETURNING id, assigned_to, assigned_at, updated_at
+      `;
+
+      const result = await pool.query(updateQuery, [leadId]);
+      const updatedLead = result.rows[0];
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          id: updatedLead.id,
+          assigned_to: updatedLead.assigned_to,
+          assigned_at: updatedLead.assigned_at,
+          updated_at: updatedLead.updated_at,
+          assigned_user: null
+        },
+        message: 'Lead unassigned successfully'
+      });
+    }
+
+    // Validate assigned_to is a valid user
+    const checkUserQuery = 'SELECT id, name, email FROM users WHERE id = $1';
+    const checkUserResult = await pool.query(checkUserQuery, [assigned_to]);
+
+    if (checkUserResult.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid user ID',
+          details: [
+            { field: 'assigned_to', message: 'User does not exist' }
+          ],
+          statusCode: 400
+        }
+      });
+    }
+
+    // Assign the lead
+    const updateQuery = `
+      UPDATE leads
+      SET assigned_to = $1, assigned_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+      RETURNING id, assigned_to, assigned_at, updated_at
+    `;
+
+    const result = await pool.query(updateQuery, [assigned_to, leadId]);
+    const updatedLead = result.rows[0];
+    const assignedUser = checkUserResult.rows[0];
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        id: updatedLead.id,
+        assigned_to: updatedLead.assigned_to,
+        assigned_at: updatedLead.assigned_at,
+        updated_at: updatedLead.updated_at,
+        assigned_user: {
+          id: assignedUser.id,
+          name: assignedUser.name,
+          email: assignedUser.email
+        }
+      },
+      message: 'Lead assigned successfully'
+    });
+
+  } catch (error) {
+    console.error('Assign lead error:', error);
+    return res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'An error occurred while assigning lead',
         statusCode: 500
       }
     });

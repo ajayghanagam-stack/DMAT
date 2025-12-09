@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import healthRoutes from './src/routes/healthRoutes.js';
 import landingPageRoutes from './src/routes/landingPageRoutes.js';
 import leadRoutes from './src/routes/leadRoutes.js';
+import userRoutes from './src/routes/userRoutes.js';
 import publicRoutes from './src/routes/publicRoutes.js';
 import authRoutes from './src/routes/authRoutes.js';
 
@@ -41,6 +42,7 @@ app.use('/api', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin/landing-pages', landingPageRoutes);
 app.use('/api/admin/leads', leadRoutes);
+app.use('/api/admin/users', userRoutes);
 app.use('/api/public', publicRoutes);
 
 // Root route
