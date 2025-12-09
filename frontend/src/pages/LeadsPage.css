@@ -383,6 +383,126 @@
   word-break: break-word;
 }
 
+/* Bulk Actions Styles */
+.bulk-actions-bar {
+  background: #f7fafc;
+  border: 2px solid #667eea;
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bulk-actions-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.clear-selection-button {
+  padding: 6px 12px;
+  background: white;
+  color: #718096;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clear-selection-button:hover {
+  background: #e2e8f0;
+  color: #2d3748;
+}
+
+.bulk-actions-buttons {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.bulk-action-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bulk-action-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bulk-action-group button {
+  padding: 6px 14px;
+  background: white;
+  color: #667eea;
+  border: 1px solid #667eea;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bulk-action-group button:hover {
+  background: #667eea;
+  color: white;
+}
+
+.bulk-action-group select {
+  padding: 6px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  background: white;
+  color: #2d3748;
+  transition: all 0.2s;
+  min-width: 150px;
+}
+
+.bulk-action-group select:hover {
+  border-color: #667eea;
+}
+
+.bulk-action-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.checkbox-column {
+  width: 40px;
+  text-align: center;
+}
+
+.checkbox-column input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
 @media (max-width: 1200px) {
   .leads-page {
     flex-direction: column;

@@ -22,6 +22,8 @@ function LeadsPage() {
   const [selectedLead, setSelectedLead] = useState(null);
   const [newNoteText, setNewNoteText] = useState('');
   const [notesLoading, setNotesLoading] = useState(false);
+  const [selectedLeadIds, setSelectedLeadIds] = useState([]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
 
   useEffect(() => {
     loadLeads();
@@ -163,6 +165,70 @@ function LeadsPage() {
     }
   };
 
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedLeadIds(filteredLeads.map(lead => lead.id));
+    } else {
+      setSelectedLeadIds([]);
+    }
+  };
+
+  const handleSelectLead = (leadId) => {
+    if (selectedLeadIds.includes(leadId)) {
+      setSelectedLeadIds(selectedLeadIds.filter(id => id !== leadId));
+    } else {
+      setSelectedLeadIds([...selectedLeadIds, leadId]);
+    }
+  };
+
+  const handleBulkStatusUpdate = async (newStatus) => {
+    if (selectedLeadIds.length === 0) return;
+
+    if (!confirm(`Update ${selectedLeadIds.length} lead(s) to status "${newStatus}"?`)) {
+      return;
+    }
+
+    try {
+      await Promise.all(
+        selectedLeadIds.map(leadId => updateLeadStatus(leadId, newStatus))
+      );
+
+      setLeads(leads.map(lead =>
+        selectedLeadIds.includes(lead.id) ? { ...lead, status: newStatus } : lead
+      ));
+
+      setSelectedLeadIds([]);
+      setShowBulkActions(false);
+      alert(`Successfully updated ${selectedLeadIds.length} lead(s)`);
+    } catch (err) {
+      alert(`Failed to update leads: ${err.message}`);
+    }
+  };
+
+  const handleBulkAssign = async (userId) => {
+    if (selectedLeadIds.length === 0) return;
+
+    const assigned_to = userId === '' ? null : parseInt(userId);
+    const userName = userId === '' ? 'Unassigned' : users.find(u => u.id === parseInt(userId))?.name;
+
+    if (!confirm(`Assign ${selectedLeadIds.length} lead(s) to ${userName}?`)) {
+      return;
+    }
+
+    try {
+      await Promise.all(
+        selectedLeadIds.map(leadId => assignLead(leadId, assigned_to))
+      );
+
+      loadLeads(); // Reload to get updated assignment info
+      setSelectedLeadIds([]);
+      setShowBulkActions(false);
+      alert(`Successfully assigned ${selectedLeadIds.length} lead(s)`);
+    } catch (err) {
+      alert(`Failed to assign leads: ${err.message}`);
+    }
+  };
+
   const filteredLeads = leads.filter(lead => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
@@ -288,6 +354,45 @@ function LeadsPage() {
           </div>
         </div>
 
+        {selectedLeadIds.length > 0 && (
+          <div className="bulk-actions-bar">
+            <div className="bulk-actions-info">
+              <span>{selectedLeadIds.length} lead(s) selected</span>
+              <button
+                className="clear-selection-button"
+                onClick={() => setSelectedLeadIds([])}
+              >
+                Clear Selection
+              </button>
+            </div>
+            <div className="bulk-actions-buttons">
+              <div className="bulk-action-group">
+                <label>Update Status:</label>
+                <button onClick={() => handleBulkStatusUpdate('new')}>New</button>
+                <button onClick={() => handleBulkStatusUpdate('contacted')}>Contacted</button>
+                <button onClick={() => handleBulkStatusUpdate('qualified')}>Qualified</button>
+                <button onClick={() => handleBulkStatusUpdate('converted')}>Converted</button>
+              </div>
+              <div className="bulk-action-group">
+                <label>Assign To:</label>
+                <select
+                  onChange={(e) => {
+                    handleBulkAssign(e.target.value);
+                    e.target.value = '';
+                  }}
+                  defaultValue=""
+                >
+                  <option value="" disabled>Select User...</option>
+                  <option value="">Unassigned</option>
+                  {users.map(user => (
+                    <option key={user.id} value={user.id}>{user.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
         {loading && (
           <div className="loading-state">Loading leads...</div>
         )}
@@ -316,6 +421,13 @@ function LeadsPage() {
             <table className="leads-table">
               <thead>
                 <tr>
+                  <th className="checkbox-column">
+                    <input
+                      type="checkbox"
+                      checked={filteredLeads.length > 0 && selectedLeadIds.length === filteredLeads.length}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Phone</th>
@@ -332,6 +444,13 @@ function LeadsPage() {
                     key={lead.id}
                     className={selectedLead?.id === lead.id ? 'selected' : ''}
                   >
+                    <td className="checkbox-column">
+                      <input
+                        type="checkbox"
+                        checked={selectedLeadIds.includes(lead.id)}
+                        onChange={() => handleSelectLead(lead.id)}
+                      />
+                    </td>
                     <td className="lead-name">{lead.name}</td>
                     <td className="lead-email">{lead.email}</td>
                     <td className="lead-phone">{formatPhone(lead.phone)}</td>
