@@ -314,6 +314,20 @@ export const deleteLeadNote = async (noteId) => {
 };
 
 /**
+ * Bulk update leads (status and/or assignment)
+ * @param {Array<number>} lead_ids - Array of lead IDs to update
+ * @param {Object} updates - Updates to apply
+ * @param {string} [updates.status] - New status
+ * @param {number|null} [updates.assigned_to] - User ID to assign to (null to unassign)
+ */
+export const bulkUpdateLeads = async (lead_ids, updates) => {
+  return await fetchWithAuth('/api/admin/leads/bulk-update', {
+    method: 'PATCH',
+    body: JSON.stringify({ lead_ids, ...updates }),
+  });
+};
+
+/**
  * Submit lead (public endpoint - no auth required)
  * @param {Object} data - Lead data
  */

@@ -4,7 +4,8 @@ import {
   getLead,
   updateLeadStatus,
   assignLead,
-  exportLeads
+  exportLeads,
+  bulkUpdateLeads
 } from '../controllers/leadController.js';
 import { authenticate } from '../middleware/auth.js';
 
@@ -20,6 +21,12 @@ router.use(authenticate);
  * GET /api/admin/leads/export
  */
 router.get('/export', exportLeads);
+
+/**
+ * Bulk update leads - must come before /:id routes
+ * PATCH /api/admin/leads/bulk-update
+ */
+router.patch('/bulk-update', bulkUpdateLeads);
 
 /**
  * List all leads with filtering, sorting, and pagination

@@ -7,7 +7,8 @@ import {
   getLeadNotes,
   createLeadNote,
   deleteLeadNote,
-  exportLeads as exportLeadsAPI
+  exportLeads as exportLeadsAPI,
+  bulkUpdateLeads
 } from '../services/api';
 import './LeadsPage.css';
 
@@ -24,6 +25,7 @@ function LeadsPage() {
   const [selectedLead, setSelectedLead] = useState(null);
   const [newNoteText, setNewNoteText] = useState('');
   const [notesLoading, setNotesLoading] = useState(false);
+  const [selectedLeadIds, setSelectedLeadIds] = useState([]);
 
   useEffect(() => {
     loadLeads();
@@ -182,6 +184,55 @@ function LeadsPage() {
     }
   };
 
+  // Bulk action handlers
+  const handleToggleSelectAll = () => {
+    if (selectedLeadIds.length === filteredLeads.length) {
+      setSelectedLeadIds([]);
+    } else {
+      setSelectedLeadIds(filteredLeads.map(lead => lead.id));
+    }
+  };
+
+  const handleToggleSelect = (leadId) => {
+    setSelectedLeadIds(prev => {
+      if (prev.includes(leadId)) {
+        return prev.filter(id => id !== leadId);
+      } else {
+        return [...prev, leadId];
+      }
+    });
+  };
+
+  const handleBulkStatusUpdate = async (status) => {
+    if (selectedLeadIds.length === 0) return;
+
+    try {
+      await bulkUpdateLeads(selectedLeadIds, { status });
+      await loadLeads();
+      setSelectedLeadIds([]);
+      alert(`Successfully updated ${selectedLeadIds.length} lead(s) to ${status}`);
+    } catch (err) {
+      alert(`Failed to update leads: ${err.message}`);
+    }
+  };
+
+  const handleBulkAssign = async (userId) => {
+    if (selectedLeadIds.length === 0) return;
+
+    const assigned_to = userId === '' ? null : parseInt(userId);
+    try {
+      await bulkUpdateLeads(selectedLeadIds, { assigned_to });
+      await loadLeads();
+      setSelectedLeadIds([]);
+      const message = assigned_to === null
+        ? `Successfully unassigned ${selectedLeadIds.length} lead(s)`
+        : `Successfully assigned ${selectedLeadIds.length} lead(s)`;
+      alert(message);
+    } catch (err) {
+      alert(`Failed to assign leads: ${err.message}`);
+    }
+  };
+
   const filteredLeads = leads.filter(lead => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
@@ -331,6 +382,56 @@ function LeadsPage() {
               Converted
             </button>
           </div>
+
+          {selectedLeadIds.length > 0 && (
+            <div className="bulk-actions-toolbar">
+              <span className="bulk-selected-count">
+                {selectedLeadIds.length} selected
+              </span>
+
+              <select
+                className="bulk-status-select"
+                onChange={(e) => {
+                  if (e.target.value) {
+                    handleBulkStatusUpdate(e.target.value);
+                    e.target.value = '';
+                  }
+                }}
+                defaultValue=""
+              >
+                <option value="">Update Status...</option>
+                <option value="contacted">Mark as Contacted</option>
+                <option value="qualified">Mark as Qualified</option>
+                <option value="in_progress">Mark as In Progress</option>
+                <option value="converted">Mark as Converted</option>
+                <option value="closed_won">Mark as Closed Won</option>
+                <option value="closed_lost">Mark as Closed Lost</option>
+                <option value="unqualified">Mark as Unqualified</option>
+              </select>
+
+              <select
+                className="bulk-assign-select"
+                onChange={(e) => {
+                  handleBulkAssign(e.target.value);
+                  e.target.value = '';
+                }}
+                defaultValue=""
+              >
+                <option value="">Assign To...</option>
+                <option value="">Unassign</option>
+                {users.map(user => (
+                  <option key={user.id} value={user.id}>{user.name}</option>
+                ))}
+              </select>
+
+              <button
+                className="bulk-clear-button"
+                onClick={() => setSelectedLeadIds([])}
+              >
+                Clear Selection
+              </button>
+            </div>
+          )}
         </div>
 
         {loading && (
@@ -361,6 +462,14 @@ function LeadsPage() {
             <table className="leads-table">
               <thead>
                 <tr>
+                  <th className="checkbox-column">
+                    <input
+                      type="checkbox"
+                      checked={filteredLeads.length > 0 && selectedLeadIds.length === filteredLeads.length}
+                      onChange={handleToggleSelectAll}
+                      aria-label="Select all leads"
+                    />
+                  </th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Phone</th>
@@ -377,6 +486,15 @@ function LeadsPage() {
                     key={lead.id}
                     className={selectedLead?.id === lead.id ? 'selected' : ''}
                   >
+                    <td className="checkbox-column">
+                      <input
+                        type="checkbox"
+                        checked={selectedLeadIds.includes(lead.id)}
+                        onChange={() => handleToggleSelect(lead.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`Select ${lead.name}`}
+                      />
+                    </td>
                     <td className="lead-name">{lead.name}</td>
                     <td className="lead-email">{lead.email}</td>
                     <td className="lead-phone">{formatPhone(lead.phone)}</td>

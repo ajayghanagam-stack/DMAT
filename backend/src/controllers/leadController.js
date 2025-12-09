@@ -709,6 +709,133 @@ export const exportLeads = async (req, res) => {
 };
 
 /**
+ * Bulk update leads (status and/or assignment)
+ * PATCH /api/admin/leads/bulk-update
+ */
+export const bulkUpdateLeads = async (req, res) => {
+  try {
+    const { lead_ids, status, assigned_to } = req.body;
+
+    // Validate lead_ids
+    if (!lead_ids || !Array.isArray(lead_ids) || lead_ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'lead_ids must be a non-empty array',
+          statusCode: 400
+        }
+      });
+    }
+
+    // Validate that at least one update field is provided
+    if (!status && assigned_to === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'At least one of status or assigned_to must be provided',
+          statusCode: 400
+        }
+      });
+    }
+
+    // Validate status if provided
+    const validStatuses = ['new', 'contacted', 'qualified', 'in_progress', 'converted', 'closed_won', 'closed_lost', 'unqualified'];
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid status value',
+          details: [
+            { field: 'status', message: `Status must be one of: ${validStatuses.join(', ')}` }
+          ],
+          statusCode: 400
+        }
+      });
+    }
+
+    // Validate assigned_to if provided (and not null for unassignment)
+    if (assigned_to !== undefined && assigned_to !== null) {
+      const checkUserQuery = 'SELECT id FROM users WHERE id = $1';
+      const checkUserResult = await pool.query(checkUserQuery, [assigned_to]);
+
+      if (checkUserResult.rows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid user ID',
+            details: [
+              { field: 'assigned_to', message: 'User does not exist' }
+            ],
+            statusCode: 400
+          }
+        });
+      }
+    }
+
+    // Build UPDATE query dynamically
+    const updates = [];
+    const values = [];
+    let paramCount = 0;
+
+    if (status) {
+      paramCount++;
+      updates.push(`status = $${paramCount}`);
+      values.push(status);
+    }
+
+    if (assigned_to !== undefined) {
+      if (assigned_to === null) {
+        updates.push(`assigned_to = NULL, assigned_at = NULL`);
+      } else {
+        paramCount++;
+        updates.push(`assigned_to = $${paramCount}, assigned_at = CURRENT_TIMESTAMP`);
+        values.push(assigned_to);
+      }
+    }
+
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+
+    // Add lead_ids to values
+    paramCount++;
+    values.push(lead_ids);
+
+    const updateQuery = `
+      UPDATE leads
+      SET ${updates.join(', ')}
+      WHERE id = ANY($${paramCount})
+      RETURNING id
+    `;
+
+    const result = await pool.query(updateQuery, values);
+    const updatedCount = result.rows.length;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        updated_count: updatedCount,
+        lead_ids: result.rows.map(row => row.id)
+      },
+      message: `Successfully updated ${updatedCount} lead(s)`
+    });
+
+  } catch (error) {
+    console.error('Bulk update leads error:', error);
+    return res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'An error occurred while bulk updating leads',
+        statusCode: 500
+      }
+    });
+  }
+};
+
+/**
  * Helper function to escape CSV fields
  */
 function escapeCsv(field) {
