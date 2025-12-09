@@ -6,6 +6,7 @@ import {
   updateLandingPage,
   publishLandingPage,
   deleteLandingPage,
+  getTemplates,
 } from '../services/api';
 import './LandingPageFormPage.css';
 
@@ -19,9 +20,13 @@ function LandingPageFormPage() {
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState(null);
 
+  const [templates, setTemplates] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(true);
+
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
+    template_id: null,
     headline: '',
     subheading: '',
     body_text: '',
@@ -44,6 +49,10 @@ function LandingPageFormPage() {
     }
   }, [id]);
 
+  useEffect(() => {
+    loadTemplates();
+  }, []);
+
   const loadPage = async () => {
     try {
       setLoading(true);
@@ -54,6 +63,18 @@ function LandingPageFormPage() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTemplates = async () => {
+    try {
+      setLoadingTemplates(true);
+      const response = await getTemplates();
+      setTemplates(response.data);
+    } catch (err) {
+      console.error('Error loading templates:', err);
+    } finally {
+      setLoadingTemplates(false);
     }
   };
 
@@ -171,6 +192,47 @@ function LandingPageFormPage() {
       )}
 
       <div className="form-content">
+        {!isEditMode && (
+          <div className="form-section">
+            <h2>Choose Template</h2>
+            <p className="section-description">
+              Select a template for your landing page. This will determine the layout and design.
+            </p>
+
+            {loadingTemplates ? (
+              <div className="templates-loading">
+                <div className="loading-spinner"></div>
+                <p>Loading templates...</p>
+              </div>
+            ) : (
+              <div className="templates-grid">
+                {templates.map((template) => (
+                  <div
+                    key={template.id}
+                    className={`template-card ${formData.template_id === template.id ? 'selected' : ''}`}
+                    onClick={() => handleChange('template_id', template.id)}
+                  >
+                    {template.thumbnail_url && (
+                      <img
+                        src={template.thumbnail_url}
+                        alt={template.name}
+                        className="template-thumbnail"
+                      />
+                    )}
+                    <div className="template-info">
+                      <h3>{template.name}</h3>
+                      <p>{template.description}</p>
+                    </div>
+                    {formData.template_id === template.id && (
+                      <div className="template-selected-badge">✓ Selected</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="form-section">
           <h2>Page Information</h2>
 

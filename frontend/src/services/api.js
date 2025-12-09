@@ -391,3 +391,22 @@ export const deleteUser = async (id) => {
 export const getDashboardAnalytics = async () => {
   return await fetchWithAuth('/api/admin/analytics/dashboard');
 };
+
+// ============================================================================
+// TEMPLATES APIs
+// ============================================================================
+
+/**
+ * Get all active templates
+ */
+export const getTemplates = async () => {
+  return await fetchWithAuth('/api/admin/templates');
+};
+
+/**
+ * Get single template by ID
+ * @param {number} id
+ */
+export const getTemplate = async (id) => {
+  return await fetchWithAuth(`/api/admin/templates/${id}`);
+};
