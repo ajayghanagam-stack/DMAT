@@ -284,6 +284,36 @@ export const assignLead = async (id, assigned_to) => {
 };
 
 /**
+ * Get all notes for a lead
+ * @param {number} id - Lead ID
+ */
+export const getLeadNotes = async (id) => {
+  return await fetchWithAuth(`/api/admin/leads/${id}/notes`);
+};
+
+/**
+ * Create a new note for a lead
+ * @param {number} id - Lead ID
+ * @param {string} note_text - Note content
+ */
+export const createLeadNote = async (id, note_text) => {
+  return await fetchWithAuth(`/api/admin/leads/${id}/notes`, {
+    method: 'POST',
+    body: JSON.stringify({ note_text }),
+  });
+};
+
+/**
+ * Delete a lead note
+ * @param {number} noteId - Note ID
+ */
+export const deleteLeadNote = async (noteId) => {
+  return await fetchWithAuth(`/api/admin/leads/notes/${noteId}`, {
+    method: 'DELETE',
+  });
+};
+
+/**
  * Submit lead (public endpoint - no auth required)
  * @param {Object} data - Lead data
  */

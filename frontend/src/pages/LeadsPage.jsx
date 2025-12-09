@@ -1,20 +1,41 @@
 import { useState, useEffect } from 'react';
-import { getLeads, updateLeadStatus, assignLead, getUsers, exportLeads as exportLeadsAPI } from '../services/api';
+import {
+  getLeads,
+  updateLeadStatus,
+  assignLead,
+  getUsers,
+  getLeadNotes,
+  createLeadNote,
+  deleteLeadNote,
+  exportLeads as exportLeadsAPI
+} from '../services/api';
 import './LeadsPage.css';
 
 function LeadsPage() {
   const [leads, setLeads] = useState([]);
   const [users, setUsers] = useState([]);
+  const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLead, setSelectedLead] = useState(null);
+  const [newNoteText, setNewNoteText] = useState('');
+  const [notesLoading, setNotesLoading] = useState(false);
 
   useEffect(() => {
     loadLeads();
     loadUsers();
   }, [statusFilter]);
+
+  useEffect(() => {
+    if (selectedLead) {
+      loadNotes(selectedLead.id);
+    } else {
+      setNotes([]);
+      setNewNoteText('');
+    }
+  }, [selectedLead]);
 
   const loadUsers = async () => {
     try {
@@ -80,6 +101,42 @@ function LeadsPage() {
       }
     } catch (err) {
       alert(`Failed to assign lead: ${err.message}`);
+    }
+  };
+
+  const loadNotes = async (leadId) => {
+    try {
+      setNotesLoading(true);
+      const response = await getLeadNotes(leadId);
+      setNotes(response.data || []);
+    } catch (err) {
+      console.error('Failed to load notes:', err);
+    } finally {
+      setNotesLoading(false);
+    }
+  };
+
+  const handleAddNote = async (e) => {
+    e.preventDefault();
+    if (!selectedLead || !newNoteText.trim()) return;
+
+    try {
+      const response = await createLeadNote(selectedLead.id, newNoteText.trim());
+      setNotes([response.data, ...notes]);
+      setNewNoteText('');
+    } catch (err) {
+      alert(`Failed to add note: ${err.message}`);
+    }
+  };
+
+  const handleDeleteNote = async (noteId) => {
+    if (!confirm('Are you sure you want to delete this note?')) return;
+
+    try {
+      await deleteLeadNote(noteId);
+      setNotes(notes.filter(note => note.id !== noteId));
+    } catch (err) {
+      alert(`Failed to delete note: ${err.message}`);
     }
   };
 
@@ -404,6 +461,64 @@ function LeadsPage() {
                   Converted
                 </button>
               </div>
+            </div>
+
+            <div className="detail-section">
+              <h3>Notes & Comments</h3>
+
+              <form onSubmit={handleAddNote} className="note-form">
+                <textarea
+                  className="note-textarea"
+                  placeholder="Add a note..."
+                  value={newNoteText}
+                  onChange={(e) => setNewNoteText(e.target.value)}
+                  maxLength={1000}
+                  rows={3}
+                />
+                <div className="note-form-footer">
+                  <span className="note-char-count">{newNoteText.length}/1000</span>
+                  <button
+                    type="submit"
+                    className="add-note-button"
+                    disabled={!newNoteText.trim()}
+                  >
+                    Add Note
+                  </button>
+                </div>
+              </form>
+
+              {notesLoading && (
+                <div className="notes-loading">Loading notes...</div>
+              )}
+
+              {!notesLoading && notes.length === 0 && (
+                <div className="notes-empty">No notes yet. Be the first to add one!</div>
+              )}
+
+              {!notesLoading && notes.length > 0 && (
+                <div className="notes-list">
+                  {notes.map(note => (
+                    <div key={note.id} className="note-item">
+                      <div className="note-header">
+                        <div className="note-author">
+                          <strong>{note.user.name}</strong>
+                          <span className="note-date">
+                            {formatDate(note.created_at)}
+                          </span>
+                        </div>
+                        <button
+                          className="note-delete-button"
+                          onClick={() => handleDeleteNote(note.id)}
+                          title="Delete note"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <div className="note-text">{note.note_text}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {(selectedLead.ip_address || selectedLead.user_agent) && (
