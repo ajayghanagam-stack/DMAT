@@ -19,6 +19,8 @@ function LeadsPage() {
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [selectedLead, setSelectedLead] = useState(null);
   const [newNoteText, setNewNoteText] = useState('');
   const [notesLoading, setNotesLoading] = useState(false);
@@ -26,7 +28,7 @@ function LeadsPage() {
   useEffect(() => {
     loadLeads();
     loadUsers();
-  }, [statusFilter]);
+  }, [statusFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     if (selectedLead) {
@@ -53,6 +55,12 @@ function LeadsPage() {
       const params = {};
       if (statusFilter !== 'all') {
         params.status = statusFilter;
+      }
+      if (dateFrom) {
+        params.date_from = dateFrom;
+      }
+      if (dateTo) {
+        params.date_to = dateTo;
       }
       const response = await getLeads(params);
       setLeads(response.data || []);
@@ -140,6 +148,11 @@ function LeadsPage() {
     }
   };
 
+  const handleClearDateFilter = () => {
+    setDateFrom('');
+    setDateTo('');
+  };
+
   const handleExport = async () => {
     try {
       const params = {};
@@ -148,6 +161,12 @@ function LeadsPage() {
       }
       if (searchQuery && searchQuery.trim() !== '') {
         params.search = searchQuery.trim();
+      }
+      if (dateFrom) {
+        params.date_from = dateFrom;
+      }
+      if (dateTo) {
+        params.date_to = dateTo;
       }
       const blob = await exportLeadsAPI(params);
       const url = window.URL.createObjectURL(blob);
@@ -252,6 +271,32 @@ function LeadsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+          </div>
+
+          <div className="date-filter-group">
+            <label className="date-label">From:</label>
+            <input
+              type="date"
+              className="date-input"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+            <label className="date-label">To:</label>
+            <input
+              type="date"
+              className="date-input"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+            {(dateFrom || dateTo) && (
+              <button
+                className="clear-date-button"
+                onClick={handleClearDateFilter}
+                title="Clear date filter"
+              >
+                ✕
+              </button>
+            )}
           </div>
 
           <div className="filter-group">
