@@ -48,6 +48,14 @@ function Layout({ children }) {
             <span className="nav-icon">👥</span>
             <span>Leads</span>
           </Link>
+
+          <Link
+            to="/users"
+            className={`nav-item ${isActive('/users') ? 'active' : ''}`}
+          >
+            <span className="nav-icon">👤</span>
+            <span>Users</span>
+          </Link>
         </nav>
 
         <div className="sidebar-footer">

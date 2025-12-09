@@ -8,6 +8,7 @@ import LandingPagesPage from './pages/LandingPagesPage';
 import LandingPageFormPage from './pages/LandingPageFormPage';
 import PreviewPage from './pages/PreviewPage';
 import LeadsPage from './pages/LeadsPage';
+import UsersPage from './pages/UsersPage';
 import './App.css';
 
 function App() {
@@ -89,6 +90,17 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <LeadsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <UsersPage />
                 </Layout>
               </ProtectedRoute>
             }

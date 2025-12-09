@@ -334,10 +334,51 @@ export const submitLead = async (data) => {
 // ============================================================================
 
 /**
- * Get all users (for assignment dropdown)
+ * Get all users
  */
 export const getUsers = async () => {
   return await fetchWithAuth('/api/admin/users');
+};
+
+/**
+ * Get single user by ID
+ * @param {number} id
+ */
+export const getUser = async (id) => {
+  return await fetchWithAuth(`/api/admin/users/${id}`);
+};
+
+/**
+ * Create new user
+ * @param {Object} data - User data (name, email, password, role)
+ */
+export const createUser = async (data) => {
+  return await fetchWithAuth('/api/admin/users', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+/**
+ * Update user
+ * @param {number} id
+ * @param {Object} data - Updated user data (name, email, role)
+ */
+export const updateUser = async (id, data) => {
+  return await fetchWithAuth(`/api/admin/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+};
+
+/**
+ * Delete user
+ * @param {number} id
+ */
+export const deleteUser = async (id) => {
+  return await fetchWithAuth(`/api/admin/users/${id}`, {
+    method: 'DELETE',
+  });
 };
 
 // ============================================================================
