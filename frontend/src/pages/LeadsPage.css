@@ -53,6 +53,79 @@
   letter-spacing: 0.5px;
 }
 
+/* Bulk Actions */
+.checkbox-column {
+  width: 40px;
+  text-align: center;
+}
+
+.checkbox-column input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.bulk-actions-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #edf2f7;
+  border: 2px solid #cbd5e0;
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+.bulk-selected-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.bulk-status-select,
+.bulk-assign-select {
+  padding: 8px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #2d3748;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 180px;
+}
+
+.bulk-status-select:hover,
+.bulk-assign-select:hover {
+  border-color: #667eea;
+}
+
+.bulk-status-select:focus,
+.bulk-assign-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.bulk-clear-button {
+  padding: 8px 16px;
+  background: white;
+  color: #718096;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: auto;
+}
+
+.bulk-clear-button:hover {
+  background: #f7fafc;
+  border-color: #cbd5e0;
+  color: #2d3748;
+}
+
 .leads-table tbody tr {
   border-bottom: 1px solid #e2e8f0;
   transition: background-color 0.2s;
