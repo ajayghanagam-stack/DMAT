@@ -101,6 +101,44 @@ function LandingPageFormPage() {
     setFormData(prev => ({ ...prev, slug: value }));
   };
 
+  const handleFieldChange = (index, property, value) => {
+    const updatedFields = [...formData.form_fields.fields];
+    updatedFields[index] = {
+      ...updatedFields[index],
+      [property]: value
+    };
+    setFormData(prev => ({
+      ...prev,
+      form_fields: { fields: updatedFields }
+    }));
+  };
+
+  const handleAddField = () => {
+    const newField = {
+      name: '',
+      type: 'text',
+      label: '',
+      required: false,
+      placeholder: ''
+    };
+    setFormData(prev => ({
+      ...prev,
+      form_fields: {
+        fields: [...prev.form_fields.fields, newField]
+      }
+    }));
+  };
+
+  const handleDeleteField = (index) => {
+    if (!confirm('Are you sure you want to delete this field?')) return;
+
+    const updatedFields = formData.form_fields.fields.filter((_, i) => i !== index);
+    setFormData(prev => ({
+      ...prev,
+      form_fields: { fields: updatedFields }
+    }));
+  };
+
   const handleSaveDraft = async () => {
     try {
       setSaving(true);
@@ -356,17 +394,76 @@ function LandingPageFormPage() {
         <div className="form-section">
           <h2>Form Configuration</h2>
           <p className="section-description">
-            The form will include these fields. (Phase 1: Fixed fields - Name, Email, Phone)
+            Configure the fields that will appear in your landing page form.
           </p>
 
-          <div className="form-fields-preview">
+          <div className="custom-fields-editor">
             {formData.form_fields.fields.map((field, index) => (
-              <div key={index} className="field-preview">
-                <span className="field-name">{field.label}</span>
-                <span className="field-type">({field.type})</span>
-                {field.required && <span className="field-required">Required</span>}
+              <div key={index} className="custom-field-item">
+                <div className="field-handle">⋮⋮</div>
+                <div className="field-inputs">
+                  <input
+                    type="text"
+                    placeholder="Field Name (e.g., name, email)"
+                    value={field.name}
+                    onChange={(e) => handleFieldChange(index, 'name', e.target.value)}
+                    className="field-input-small"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Label (e.g., Full Name)"
+                    value={field.label}
+                    onChange={(e) => handleFieldChange(index, 'label', e.target.value)}
+                    className="field-input-medium"
+                  />
+                  <select
+                    value={field.type}
+                    onChange={(e) => handleFieldChange(index, 'type', e.target.value)}
+                    className="field-input-small"
+                  >
+                    <option value="text">Text</option>
+                    <option value="email">Email</option>
+                    <option value="tel">Phone</option>
+                    <option value="number">Number</option>
+                    <option value="url">URL</option>
+                    <option value="textarea">Textarea</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Placeholder"
+                    value={field.placeholder || ''}
+                    onChange={(e) => handleFieldChange(index, 'placeholder', e.target.value)}
+                    className="field-input-medium"
+                  />
+                  <label className="field-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={field.required}
+                      onChange={(e) => handleFieldChange(index, 'required', e.target.checked)}
+                    />
+                    Required
+                  </label>
+                </div>
+                <div className="field-actions">
+                  <button
+                    type="button"
+                    className="field-delete-button"
+                    onClick={() => handleDeleteField(index)}
+                    title="Delete field"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
             ))}
+
+            <button
+              type="button"
+              className="add-field-button"
+              onClick={handleAddField}
+            >
+              + Add Field
+            </button>
           </div>
         </div>
       </div>
