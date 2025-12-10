@@ -7,6 +7,8 @@ import {
   publishLandingPage,
   deleteLandingPage,
   getTemplates,
+  uploadImage,
+  deleteImage,
 } from '../services/api';
 import './LandingPageFormPage.css';
 
@@ -22,6 +24,9 @@ function LandingPageFormPage() {
 
   const [templates, setTemplates] = useState([]);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
+
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -137,6 +142,61 @@ function LandingPageFormPage() {
       ...prev,
       form_fields: { fields: updatedFields }
     }));
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Invalid file type. Please upload JPG, PNG, GIF, or WebP images only.');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB.');
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      setError(null);
+
+      const response = await uploadImage(file);
+      const imageUrl = response.data.url;
+
+      setFormData(prev => ({ ...prev, hero_image_url: imageUrl }));
+      setImagePreview(imageUrl);
+      alert('Image uploaded successfully!');
+    } catch (err) {
+      setError(err.message);
+      alert(`Error uploading image: ${err.message}`);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (!formData.hero_image_url) return;
+    if (!confirm('Are you sure you want to remove this image?')) return;
+
+    try {
+      setUploadingImage(true);
+      await deleteImage(formData.hero_image_url);
+      setFormData(prev => ({ ...prev, hero_image_url: '' }));
+      setImagePreview(null);
+      alert('Image removed successfully!');
+    } catch (err) {
+      console.error('Error removing image:', err);
+      // Even if delete fails, clear from form
+      setFormData(prev => ({ ...prev, hero_image_url: '' }));
+      setImagePreview(null);
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleSaveDraft = async () => {
@@ -362,16 +422,55 @@ function LandingPageFormPage() {
           </div>
 
           <div className="form-field">
-            <label htmlFor="hero_image_url">Hero Image URL</label>
-            <input
-              type="url"
-              id="hero_image_url"
-              value={formData.hero_image_url || ''}
-              onChange={(e) => handleChange('hero_image_url', e.target.value)}
-              placeholder="https://example.com/image.jpg"
-            />
+            <label htmlFor="hero_image">Hero Image</label>
+
+            {formData.hero_image_url || imagePreview ? (
+              <div className="image-preview-container">
+                <img
+                  src={imagePreview || formData.hero_image_url}
+                  alt="Hero preview"
+                  className="image-preview"
+                />
+                <div className="image-actions">
+                  <button
+                    type="button"
+                    className="remove-image-button"
+                    onClick={handleRemoveImage}
+                    disabled={uploadingImage}
+                  >
+                    Remove Image
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="image-upload-container">
+                <input
+                  type="file"
+                  id="hero_image"
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                  className="image-input"
+                />
+                <label htmlFor="hero_image" className="image-upload-label">
+                  {uploadingImage ? (
+                    <>
+                      <div className="upload-spinner"></div>
+                      <span>Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="upload-icon">📁</span>
+                      <span>Click to upload image</span>
+                      <span className="upload-hint">JPG, PNG, GIF or WebP (max 5MB)</span>
+                    </>
+                  )}
+                </label>
+              </div>
+            )}
+
             <p className="field-help">
-              URL to an image to display at the top of the page.
+              Upload an image to display at the top of the landing page.
             </p>
           </div>
 

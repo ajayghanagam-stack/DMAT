@@ -410,3 +410,39 @@ export const getTemplates = async () => {
 export const getTemplate = async (id) => {
   return await fetchWithAuth(`/api/admin/templates/${id}`);
 };
+
+// ============================================================================
+// IMAGE UPLOAD APIs
+// ============================================================================
+
+/**
+ * Upload image to MinIO storage
+ * @param {File} imageFile - Image file to upload
+ * @returns {Promise<Object>} - {url, filename, size, mimeType}
+ */
+export const uploadImage = async (imageFile) => {
+  const token = getAuthToken();
+  const formData = new FormData();
+  formData.append('image', imageFile);
+
+  const response = await fetch(`${API_BASE_URL}/api/admin/upload/image`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData, // Don't set Content-Type - browser will set it with boundary
+  });
+
+  return handleResponse(response);
+};
+
+/**
+ * Delete image from MinIO storage
+ * @param {string} imageUrl - URL of the image to delete
+ */
+export const deleteImage = async (imageUrl) => {
+  return await fetchWithAuth('/api/admin/upload/image', {
+    method: 'DELETE',
+    body: JSON.stringify({ url: imageUrl }),
+  });
+};
