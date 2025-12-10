@@ -10,6 +10,8 @@ import publicRoutes from './src/routes/publicRoutes.js';
 import authRoutes from './src/routes/authRoutes.js';
 import analyticsRoutes from './src/routes/analyticsRoutes.js';
 import templateRoutes from './src/routes/templateRoutes.js';
+import uploadRoutes from './src/routes/uploadRoutes.js';
+import { initializeStorage } from './src/services/storage.js';
 
 // Load environment variables
 dotenv.config();
@@ -49,6 +51,7 @@ app.use('/api/admin/leads', leadRoutes);
 app.use('/api/admin/users', userRoutes);
 app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/admin/templates', templateRoutes);
+app.use('/api/admin/upload', uploadRoutes);
 app.use('/api/public', publicRoutes);
 
 // Root route
@@ -115,9 +118,9 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log('='.repeat(60));
-  console.log(`🚀 DMAT Backend Server - Phase 1`);
+  console.log(`🚀 DMAT Backend Server - Phase 2`);
   console.log(`📡 Running on: http://localhost:${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`\n🔗 API Endpoints:`);
@@ -146,10 +149,18 @@ app.listen(PORT, () => {
   console.log(`\n   Templates (Admin):`);
   console.log(`   - GET    /api/admin/templates`);
   console.log(`   - GET    /api/admin/templates/:id`);
+  console.log(`\n   Image Upload (Admin):`);
+  console.log(`   - POST   /api/admin/upload/image`);
+  console.log(`   - DELETE /api/admin/upload/image`);
   console.log(`\n   Lead Capture (Public):`);
   console.log(`   - POST   /api/public/leads`);
   console.log(`\n📝 Admin endpoints require Authorization header: Bearer <token>`);
   console.log(`📝 Public endpoints require no authentication`);
+  console.log('='.repeat(60));
+
+  // Initialize MinIO storage
+  console.log(`\n🗄️  Initializing MinIO storage...`);
+  await initializeStorage();
   console.log('='.repeat(60));
 });
 
