@@ -4,6 +4,7 @@
  */
 
 import LandingPageModel from '../models/landingPageModel.js';
+import { publishToWordPress, isWordPressConfigured } from '../services/wordpress.js';
 
 /**
  * Create a new landing page
@@ -295,16 +296,50 @@ export const publishLandingPage = async (req, res) => {
       });
     }
 
-    // Generate published URL (for now, use DMAT-hosted URL)
-    // In production, this would publish to WordPress or configured platform
-    const publishedUrl = `${process.env.PUBLIC_URL || 'http://localhost:5001'}/pages/${existing.slug}.html`;
+    let publishedUrl;
+    let wordpressData = null;
+
+    // Publish to WordPress if configured
+    if (isWordPressConfigured()) {
+      try {
+        const wpResult = await publishToWordPress(existing);
+        publishedUrl = wpResult.postUrl;
+        wordpressData = {
+          wordpress_post_id: wpResult.postId,
+          wordpress_url: wpResult.postUrl,
+        };
+        console.log(`Published to WordPress: ${wpResult.postUrl}`);
+      } catch (wpError) {
+        console.error('WordPress publish error:', wpError.message);
+        // Fall back to DMAT-hosted URL if WordPress publish fails
+        publishedUrl = `${process.env.PUBLIC_URL || 'http://localhost:5001'}/pages/${existing.slug}.html`;
+        // Return error but don't fail the entire publish
+        return res.status(500).json({
+          success: false,
+          error: {
+            code: 'WORDPRESS_ERROR',
+            message: `Failed to publish to WordPress: ${wpError.message}`,
+            statusCode: 500
+          }
+        });
+      }
+    } else {
+      // WordPress not configured, use DMAT-hosted URL
+      publishedUrl = `${process.env.PUBLIC_URL || 'http://localhost:5001'}/pages/${existing.slug}.html`;
+      console.log('WordPress not configured, using DMAT-hosted URL');
+    }
 
     const publishedPage = await LandingPageModel.publish(id, publishedUrl);
 
     res.json({
       success: true,
-      data: publishedPage,
-      message: 'Landing page published successfully'
+      data: {
+        ...publishedPage,
+        ...wordpressData,
+      },
+      message: isWordPressConfigured()
+        ? 'Landing page published to WordPress successfully'
+        : 'Landing page published successfully (WordPress not configured)'
     });
   } catch (error) {
     console.error('Error publishing landing page:', error);
