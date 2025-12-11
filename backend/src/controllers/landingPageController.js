@@ -5,6 +5,7 @@
 
 import LandingPageModel from '../models/landingPageModel.js';
 import { publishToWordPress, isWordPressConfigured } from '../services/wordpress.js';
+import fs from 'fs';
 
 /**
  * Create a new landing page
@@ -406,8 +407,15 @@ export const previewLandingPage = async (req, res) => {
     // Generate HTML for preview
     const html = generateLandingPageHTML(landingPage, true);
 
-    // Return HTML directly
+    // DEBUG: Save generated HTML to file for inspection
+    fs.writeFileSync('/tmp/preview-debug.html', html);
+    console.log('Generated HTML saved to /tmp/preview-debug.html');
+
+    // Return HTML directly with no-cache headers to ensure fresh preview every time
     res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     return res.send(html);
 
   } catch (error) {
@@ -456,13 +464,14 @@ function generateLandingPageHTML(page, isPreview = false) {
   }).join('');
 
   const previewBanner = isPreview ? `
-    <div style="background: #ffc107; color: #000; padding: 12px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 1000;">
-      ⚠️ PREVIEW MODE - Form submissions will not be saved
+    <div style="background: #2196F3; color: #fff; padding: 12px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 1000;">
+      🔍 PREVIEW MODE - Lead submissions will be saved for testing
     </div>
   ` : '';
 
-  const formAction = isPreview ? '#' : '/api/public/leads';
-  const formOnSubmit = isPreview ? 'onsubmit="alert(\'Preview mode: Form submission disabled\'); return false;"' : '';
+  // Enable form submission in preview mode so users can test lead capture
+  const formAction = '/api/public/leads';
+  const formOnSubmit = '';
 
   return `
 <!DOCTYPE html>
@@ -679,7 +688,6 @@ function generateLandingPageHTML(page, isPreview = false) {
     </div>
   </div>
 
-  ${!isPreview ? `
   <script>
     // Handle form submission
     document.getElementById('leadForm').addEventListener('submit', async (e) => {
@@ -708,7 +716,12 @@ function generateLandingPageHTML(page, isPreview = false) {
       data.landing_url = window.location.href;
 
       try {
-        const response = await fetch('/api/public/leads', {
+        // Use absolute URL to backend API server
+        const apiUrl = 'http://localhost:5001/api/public/leads';
+        console.log('Submitting to:', apiUrl);
+        alert('About to submit to: ' + apiUrl);
+
+        const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -745,7 +758,6 @@ function generateLandingPageHTML(page, isPreview = false) {
       }
     });
   </script>
-  ` : ''}
 </body>
 </html>
   `.trim();

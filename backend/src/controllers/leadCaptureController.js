@@ -127,7 +127,9 @@ export const submitLead = async (req, res) => {
 
     const landingPage = landingPageResult.rows[0];
 
-    if (landingPage.publish_status !== 'published') {
+    // Allow submissions for published pages and draft pages (for preview/testing)
+    // Only block archived or deleted pages
+    if (landingPage.publish_status === 'archived') {
       return res.status(400).json({
         success: false,
         error: {

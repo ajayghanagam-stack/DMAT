@@ -18,13 +18,14 @@ nano .env
 npm run dev
 ```
 
-Server runs on: **http://localhost:5000**
+Server runs on: **http://localhost:5001**
 
 ## 📋 Prerequisites
 
 - Node.js >= 18.x
 - PostgreSQL >= 14.x
-- Database `dmat_dev` created and migrated
+- Database `dmat_db` created and migrated
+- MinIO (for image uploads - Phase 2)
 
 ## 📦 Available Scripts
 
@@ -44,6 +45,11 @@ npm start            # Start production server
 - **Express** - Web framework
 - **PostgreSQL** - Database
 - **pg** - PostgreSQL client
+- **bcryptjs** - Password hashing
+- **jsonwebtoken** - JWT authentication
+- **MinIO** - S3-compatible object storage (Phase 2)
+- **Axios** - HTTP client for WordPress integration (Phase 2)
+- **Multer** - File upload handling (Phase 2)
 - **dotenv** - Environment variables
 - **cors** - Cross-origin resource sharing
 - **nodemon** - Development auto-reload
@@ -81,18 +87,34 @@ Required variables:
 ```env
 # Server
 NODE_ENV=development
-PORT=5000
-API_BASE_URL=http://localhost:5000
+PORT=5001
+API_BASE_URL=http://localhost:5001
 
 # Database
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=dmat_dev
+DB_NAME=dmat_db
 DB_USER=postgres
-DB_PASSWORD=         # Set if you have a password
+DB_PASSWORD=postgres
 
 # CORS
 CORS_ORIGIN=http://localhost:5173
+
+# JWT
+JWT_SECRET=dmat-super-secret-key-change-in-production-2024
+
+# MinIO (Phase 2 - Image uploads)
+MINIO_ENDPOINT=localhost
+MINIO_PORT=9000
+MINIO_USE_SSL=false
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin123
+MINIO_BUCKET=dmat-images
+
+# WordPress Integration (Phase 2 - Optional)
+# WP_SITE_URL=https://yoursite.com
+# WP_USERNAME=your-wordpress-username
+# WP_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
 ```
 
 ## 🔌 API Endpoints
@@ -155,7 +177,7 @@ GET /
 psql -U postgres
 
 # Create database
-CREATE DATABASE dmat_dev;
+CREATE DATABASE dmat_db;
 
 # Exit
 \q
@@ -165,19 +187,30 @@ CREATE DATABASE dmat_dev;
 
 ```bash
 # From DMAT root directory
-psql -U postgres -d dmat_dev -f database/migrations/001_create_core_tables.sql
+cd database
+psql -U postgres -d dmat_db -f migrations/001_create_core_tables.sql
+psql -U postgres -d dmat_db -f migrations/002_add_custom_fields.sql
+psql -U postgres -d dmat_db -f migrations/003_add_images.sql
+psql -U postgres -d dmat_db -f migrations/004_add_landing_page_enhancements.sql
 ```
 
-### 3. Verify Tables
+### 3. Seed Sample Data (Optional)
 
 ```bash
-psql -U postgres -d dmat_dev -c "\dt"
+psql -U postgres -d dmat_db -f seeds/001_sample_data.sql
+```
+
+### 4. Verify Tables
+
+```bash
+psql -U postgres -d dmat_db -c "\dt"
 ```
 
 Expected tables:
 - `users`
 - `landing_pages`
 - `leads`
+- `custom_fields`
 
 ## 🧪 Testing Endpoints
 
@@ -282,22 +315,32 @@ If frontend can't connect:
 2. Restart backend server after changing `.env`
 3. Check browser console for specific CORS error
 
-## 📊 Phase 0 Status
+## 📊 Implementation Status
 
-✅ Express server setup
-✅ PostgreSQL connection
-✅ Health check endpoint
-✅ Database check endpoint
-✅ CORS configuration
-✅ Environment variables
+### Phase 1 (MVP) ✅ COMPLETE
+✅ Landing Page CRUD APIs
+✅ Lead Capture & Management APIs
+✅ JWT Authentication & Authorization
+✅ User Management
+✅ Database schema & migrations
+✅ Input validation & sanitization
 ✅ Error handling
+
+### Phase 2 (Enhancements) ✅ COMPLETE
+✅ Custom Fields API (dynamic form fields)
+✅ Image Upload with MinIO (S3-compatible storage)
+✅ WordPress REST API Integration
+✅ Hero image management
+✅ Enhanced landing page features (headline, body, CTA)
 
 ## 🔗 Related Documentation
 
-- [Main README](../README.md) - Full project setup
-- [Phase 0 Task 7 Setup](../docs/Phase0-Task7-Setup.md) - Complete setup guide
-- [Database Schema](../docs/Database-Schema.md) - Database structure
+- [Main README](../README.md) - Full project documentation
+- [WordPress Setup Guide](../WORDPRESS_SETUP.md) - WordPress integration
+- [MinIO Setup Guide](../MINIO_SETUP.md) - Image storage setup
+- [Testing Scenarios](../docs/TESTING_SCENARIOS.md) - UI testing guide
 - [Frontend README](../frontend/README.md) - Frontend documentation
+- [Database Documentation](../database/Database.md) - Database structure
 
 ---
 

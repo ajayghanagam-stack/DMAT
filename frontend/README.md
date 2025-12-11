@@ -71,9 +71,9 @@ cp .env.example .env
 
 Available variables:
 ```env
-VITE_API_BASE_URL=http://localhost:5000    # Backend API URL
+VITE_API_BASE_URL=http://localhost:5001    # Backend API URL
 VITE_APP_NAME=DMAT                         # Application name
-VITE_APP_VERSION=1.0.0                     # Application version
+VITE_APP_VERSION=2.0.0                     # Application version
 ```
 
 ## 📝 Development Guidelines

@@ -17,7 +17,7 @@ import { initializeStorage } from './src/services/storage.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Middleware
 // Public API routes - allow all origins (for form submissions from any domain)

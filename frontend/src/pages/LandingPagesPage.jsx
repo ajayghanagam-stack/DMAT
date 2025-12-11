@@ -50,7 +50,10 @@ function LandingPagesPage() {
   };
 
   const handlePreview = (id) => {
-    window.open(`/landing-pages/${id}/preview`, '_blank');
+    // Open preview directly from backend to ensure scripts execute properly
+    const token = localStorage.getItem('token');
+    const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+    window.open(`${backendUrl}/api/admin/landing-pages/${id}/preview?token=${token}`, '_blank');
   };
 
   const filteredPages = pages.filter(page => {

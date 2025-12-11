@@ -1,6 +1,6 @@
 // MinIO Storage Service - S3-compatible object storage
 
-import Minio from 'minio';
+import * as Minio from 'minio';
 import dotenv from 'dotenv';
 
 dotenv.config();

@@ -3,7 +3,7 @@
 import express from 'express';
 import multer from 'multer';
 import { uploadFile, deleteFile } from '../services/storage.js';
-import { auth } from '../middleware/auth.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -31,7 +31,7 @@ const upload = multer({
  * @desc    Upload image to MinIO
  * @access  Private (requires authentication)
  */
-router.post('/image', auth, upload.single('image'), async (req, res) => {
+router.post('/image', authenticate, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -71,7 +71,7 @@ router.post('/image', auth, upload.single('image'), async (req, res) => {
  * @desc    Delete image from MinIO
  * @access  Private (requires authentication)
  */
-router.delete('/image', auth, async (req, res) => {
+router.delete('/image', authenticate, async (req, res) => {
   try {
     const { url } = req.body;
 

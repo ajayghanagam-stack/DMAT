@@ -12,34 +12,31 @@ import jwt from 'jsonwebtoken';
  */
 export const authenticate = (req, res, next) => {
   try {
-    // Get token from Authorization header (format: "Bearer <token>")
+    // Get token from Authorization header OR query parameter (for preview links)
     const authHeader = req.headers.authorization || req.headers.Authorization;
+    const queryToken = req.query.token;
 
-    if (!authHeader) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Authentication required',
-        error: {
-          code: 'NO_TOKEN',
-          message: 'No authorization header provided. Please include Authorization header with Bearer token.'
-        }
-      });
+    let token;
+
+    // Try to get token from header first
+    if (authHeader) {
+      // Check if it's a Bearer token
+      if (!authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+          status: 'error',
+          message: 'Invalid token format',
+          error: {
+            code: 'INVALID_TOKEN_FORMAT',
+            message: 'Authorization header must be in format: Bearer <token>'
+          }
+        });
+      }
+      // Extract token
+      token = authHeader.substring(7); // Remove "Bearer " prefix
+    } else if (queryToken) {
+      // Use query parameter token (for direct preview links)
+      token = queryToken;
     }
-
-    // Check if it's a Bearer token
-    if (!authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Invalid token format',
-        error: {
-          code: 'INVALID_TOKEN_FORMAT',
-          message: 'Authorization header must be in format: Bearer <token>'
-        }
-      });
-    }
-
-    // Extract token
-    const token = authHeader.substring(7); // Remove "Bearer " prefix
 
     if (!token) {
       return res.status(401).json({
@@ -47,7 +44,7 @@ export const authenticate = (req, res, next) => {
         message: 'Authentication required',
         error: {
           code: 'NO_TOKEN',
-          message: 'No token provided in Authorization header.'
+          message: 'No token provided in Authorization header or query parameter.'
         }
       });
     }

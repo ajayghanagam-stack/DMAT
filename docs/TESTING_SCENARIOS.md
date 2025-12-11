@@ -30,9 +30,9 @@
 
 **Test Steps:**
 1. Navigate to `http://localhost:5173/login`
-2. Enter username: `admin`
-3. Enter password: `admin123`
-4. Click "Login" button
+2. Enter email: `admin@innovateelectronics.com`
+3. Enter password: `password123`
+4. Click "Sign In" button
 
 **Expected Results:**
 - ✓ User is redirected to landing pages list (`/admin/landing-pages`)
@@ -53,15 +53,15 @@
 
 **Test Steps:**
 1. Navigate to `http://localhost:5173/login`
-2. Enter username: `wronguser`
+2. Enter email: `wronguser@example.com`
 3. Enter password: `wrongpassword`
-4. Click "Login" button
+4. Click "Sign In" button
 
 **Expected Results:**
-- ✓ Error message displayed: "Invalid credentials"
+- ✓ Error message displayed: "Invalid email or password"
 - ✓ User remains on login page
 - ✓ No JWT token stored
-- ✓ Form fields are cleared or highlighted
+- ✓ Form fields remain populated for retry
 
 ---
 
@@ -112,19 +112,27 @@
 - At least 1 landing page exists in database
 
 **Test Steps:**
-1. Navigate to `/admin/landing-pages`
+1. Navigate to `/landing-pages`
 2. Observe the list of landing pages
 
 **Expected Results:**
-- ✓ List displays all landing pages
-- ✓ Each item shows: Title, Status (Draft/Published), Created Date
-- ✓ "Create New Landing Page" button is visible
-- ✓ Edit and Delete buttons visible for each page
+- ✓ Page header shows "Landing Pages" with subtitle "Create and manage your landing pages"
+- ✓ "+ Create Landing Page" button visible in top right
+- ✓ Search box visible with placeholder "Search pages..."
+- ✓ Filter buttons visible: "All", "Draft", "Published"
+- ✓ Each landing page card shows:
+  - Page title (large, bold)
+  - Status badge (Draft in amber/yellow, Published in green)
+  - Headline preview (truncated)
+  - Slug (prefixed with "/")
+  - Created date (formatted as "MMM DD, YYYY")
+  - Published date (if published)
+  - Action buttons: "Edit", "Preview", "Delete"
 
 **Data to Verify:**
-- Title matches database
-- Status badge color: Gray for Draft, Green for Published
+- Status badge colors: Draft uses amber-100 background with amber-800 text, Published uses green-100 background with green-800 text
 - Dates formatted correctly (e.g., "Dec 10, 2024")
+- Empty state shows when no landing pages exist
 
 ---
 
@@ -134,28 +142,32 @@
 
 **Pre-conditions:**
 - User is logged in
+- At least one template exists in the database
 
 **Test Steps:**
-1. Click "Create New Landing Page" button
-2. Fill in the form:
-   - **Title:** "Free Marketing Guide 2024"
-   - **Slug:** (auto-generated from title or manually enter "free-marketing-guide-2024")
+1. Click "+ Create Landing Page" button
+2. On template selection screen, select a template (click on template card)
+3. Fill in the form:
+   - **Page Title:** "Free Marketing Guide 2025"
+   - **URL Slug:** Leave auto-generated or manually enter "free-marketing-guide-2025"
    - **Headline:** "Download Your Free Marketing Guide"
    - **Subheading:** "Learn proven strategies to grow your business"
    - **Body Text:** "This comprehensive guide covers email marketing, social media, and content strategy."
-   - **CTA Text:** "Get My Free Guide"
-3. Click "Save as Draft"
+   - **Call-to-Action Button Text:** "Get My Free Guide"
+4. Scroll to bottom and click "Save Draft"
 
 **Expected Results:**
-- ✓ Success message: "Landing page created successfully"
-- ✓ Redirected to landing pages list
-- ✓ New landing page appears in list with "Draft" status
-- ✓ Slug is URL-friendly (lowercase, hyphens, no spaces)
+- ✓ Success alert: "Landing page created successfully!"
+- ✓ Redirected to `/landing-pages` (landing pages list)
+- ✓ New landing page appears in list with "Draft" status badge (amber background)
+- ✓ Slug auto-generated from title (lowercase, hyphens replace spaces)
+- ✓ Default form fields created: Full Name (required), Email Address (required), Phone Number (optional)
 
 **Backend Validation:**
 - Check database: `SELECT * FROM landing_pages ORDER BY created_at DESC LIMIT 1;`
-- Verify status = 'draft'
-- Verify all fields saved correctly
+- Verify publish_status = 'draft'
+- Verify form_fields JSON contains default 3 fields
+- Verify all text fields saved correctly
 
 ---
 
@@ -167,17 +179,24 @@
 - At least one landing page exists
 
 **Test Steps:**
-1. From landing pages list, click "Edit" on any landing page
-2. Modify the following:
-   - **Headline:** Change to "Updated Headline - Winter 2024"
-   - **Body Text:** Add new paragraph
-3. Click "Save Changes"
+1. From landing pages list, click "Edit" button on any landing page
+2. Wait for form to load with existing data
+3. Modify the following:
+   - **Headline:** Change to "Updated Headline - Winter 2025"
+   - **Body Text:** Add new paragraph at the end
+4. Scroll to bottom and click "Save Changes"
 
 **Expected Results:**
-- ✓ Success message displayed
-- ✓ Changes reflected in the list
-- ✓ Opening the page again shows updated content
+- ✓ Success alert: "Landing page updated successfully!"
+- ✓ User remains on edit page (not redirected)
+- ✓ Navigate back to list, changes reflected in headline preview
+- ✓ Click "Edit" again to verify changes persisted
 - ✓ `updated_at` timestamp changed in database
+
+**Important Notes:**
+- Template selection is NOT shown in edit mode (only on create)
+- Form fields section shows existing custom fields with ability to add/edit/delete
+- Preview button appears in header to open preview in new tab
 
 ---
 
@@ -186,21 +205,23 @@
 **Objective:** Delete an existing landing page
 
 **Pre-conditions:**
-- At least one draft landing page exists
+- At least one landing page exists (draft or published)
 
 **Test Steps:**
-1. Click "Delete" button on a draft landing page
-2. Confirm deletion in confirmation dialog
+1. From landing pages list, click "Delete" button on any landing page card
+2. Observe confirmation dialog
+3. Click "Delete" in the confirmation dialog (or "Cancel" to abort)
 
 **Expected Results:**
-- ✓ Confirmation dialog appears
-- ✓ After confirmation, landing page removed from list
-- ✓ Success message: "Landing page deleted successfully"
-- ✓ Record removed from database (soft delete or hard delete)
+- ✓ Browser confirmation dialog appears with message: "Are you sure you want to delete this landing page?"
+- ✓ After confirming, success alert: "Landing page deleted successfully!"
+- ✓ Landing page removed from list immediately
+- ✓ Record removed from database (hard delete)
 
-**Important Note:**
-- Published landing pages should show warning about leads/data loss
-- Draft pages can be deleted without warning
+**Important Notes:**
+- No special warning for published pages with leads (same confirmation for all)
+- Deletion is permanent and cannot be undone
+- Associated leads are NOT deleted (referential integrity maintained)
 
 ---
 
@@ -212,71 +233,69 @@
 
 **Pre-conditions:**
 - User is logged in
-- Editing a landing page
+- Creating or editing a landing page
+- Default 3 fields already exist (name, email, phone)
 
 **Test Steps:**
-1. Open landing page editor
-2. Navigate to "Form Fields" section
-3. Click "Add Field" button
-4. Configure first field:
-   - **Type:** Text Input
-   - **Label:** "Full Name"
-   - **Field Name:** "full_name"
-   - **Placeholder:** "Enter your full name"
-   - **Required:** Yes (check the box)
-5. Click "Add Field" again
-6. Configure second field:
-   - **Type:** Email
-   - **Label:** "Email Address"
-   - **Field Name:** "email"
-   - **Placeholder:** "you@example.com"
-   - **Required:** Yes
-7. Click "Add Field" again
-8. Configure third field:
-   - **Type:** Phone
-   - **Label:** "Phone Number"
-   - **Field Name:** "phone"
-   - **Placeholder:** "(555) 123-4567"
-   - **Required:** No
-9. Click "Add Field" again
-10. Configure fourth field:
-    - **Type:** Textarea
-    - **Label:** "Tell us about your business"
-    - **Field Name:** "business_description"
-    - **Placeholder:** "Describe your business..."
-    - **Required:** No
-11. Click "Save Changes"
+1. Scroll to "Form Configuration" section
+2. Observe existing default fields
+3. Click "+ Add Field" button to add fourth field
+4. Configure the new field inline:
+   - **Field Name:** "company" (small text input on left)
+   - **Label:** "Company Name" (medium text input)
+   - **Type:** Select "text" from dropdown
+   - **Placeholder:** "Enter your company name"
+   - **Required:** Check the checkbox
+5. Click "+ Add Field" again to add fifth field
+6. Configure another field:
+   - **Field Name:** "message"
+   - **Label:** "Tell us about your needs"
+   - **Type:** Select "textarea" from dropdown
+   - **Placeholder:** "Describe what you're looking for..."
+   - **Required:** Leave unchecked
+7. Scroll to bottom and click "Save Draft" or "Save Changes"
 
 **Expected Results:**
-- ✓ All 4 fields appear in the form preview
-- ✓ Required fields show asterisk (*) indicator
-- ✓ Fields saved to database in correct order
-- ✓ Field types render correctly (text input vs textarea)
+- ✓ New fields appear immediately after clicking "+ Add Field"
+- ✓ Each field row shows: drag handle (⋮⋮), field name input, label input, type dropdown, placeholder input, required checkbox, delete button (✕)
+- ✓ Success alert: "Landing page created successfully!" or "Landing page updated successfully!"
+- ✓ All custom fields saved to database in form_fields JSON
+- ✓ Field types available in dropdown: text, email, tel, number, url, textarea
 
 **Validation:**
 - Check database: `SELECT form_fields FROM landing_pages WHERE id = ?;`
-- Verify JSON structure contains all fields with correct properties
+- Verify JSON structure: `{"fields": [{"name": "...", "type": "...", "label": "...", "required": true/false, "placeholder": "..."}, ...]}`
+
+**Important Notes:**
+- Drag handles (⋮⋮) are displayed but drag-and-drop is NOT implemented
+- Fields must be manually reordered by deleting and re-adding if needed
+- No asterisk (*) indicator shown in the form editor (only on public form)
 
 ---
 
 ### Scenario 3.2: Reorder Custom Fields
 **Feature:** Custom Fields Reordering
+**Status:** ⚠️ NOT IMPLEMENTED
 **Objective:** Change the order of form fields
 
-**Pre-conditions:**
-- Landing page with at least 3 custom fields
+**Current Behavior:**
+- Drag handles (⋮⋮) are displayed on each field row
+- However, drag-and-drop functionality is NOT implemented
+- Fields cannot be reordered by dragging
 
-**Test Steps:**
-1. Open landing page editor
-2. In Form Fields section, use drag handles to reorder
-3. Drag "Phone Number" field to be first
-4. Drag "Email Address" to be last
-5. Click "Save Changes"
+**Workaround:**
+To change field order, users must:
+1. Delete fields that need to move
+2. Re-add them in the desired position using "+ Add Field"
+3. Re-enter field configuration (name, label, type, placeholder, required)
+4. Save changes
 
-**Expected Results:**
-- ✓ Fields display in new order
-- ✓ Order persisted after page refresh
-- ✓ Public landing page shows fields in new order
+**Expected Future Implementation:**
+- ✓ Click and drag using the drag handle (⋮⋮)
+- ✓ Drop field in new position
+- ✓ Visual indicator during drag operation
+- ✓ Order changes reflected immediately
+- ✓ Save to persist new order
 
 ---
 
@@ -285,20 +304,28 @@
 **Objective:** Modify existing field properties
 
 **Pre-conditions:**
-- Landing page with custom fields
+- Landing page with custom fields (at least 3 default fields)
 
 **Test Steps:**
-1. Click "Edit" on the "Phone Number" field
-2. Change:
-   - **Required:** Yes (check the box)
-   - **Placeholder:** "Required: (555) 123-4567"
-3. Click "Update Field"
-4. Click "Save Changes"
+1. Locate the "Phone Number" field row in Form Configuration section
+2. Modify the field inline:
+   - **Label:** Change from "Phone Number" to "Contact Phone"
+   - **Placeholder:** Change to "Required: (555) 123-4567"
+   - **Required:** Check the checkbox
+3. Scroll to bottom and click "Save Changes"
+4. Wait for success message
 
 **Expected Results:**
-- ✓ Field now shows as required (asterisk)
-- ✓ Placeholder text updated
-- ✓ Form validation enforces requirement on public page
+- ✓ Field updates immediately in the editor
+- ✓ Success alert: "Landing page updated successfully!"
+- ✓ Changes persist after page refresh
+- ✓ Required field will enforce validation on public form
+- ✓ No separate "Edit" button - all fields are editable inline
+
+**Validation:**
+- Navigate to landing page preview
+- Verify updated label and placeholder show on form
+- Try submitting form without phone - should show validation error
 
 ---
 
@@ -307,17 +334,28 @@
 **Objective:** Remove a field from the form
 
 **Pre-conditions:**
-- Landing page with multiple custom fields
+- Landing page with multiple custom fields (at least 4 fields)
 
 **Test Steps:**
-1. Click "Delete" on the "Business Description" field
-2. Confirm deletion if prompted
-3. Click "Save Changes"
+1. Locate any non-essential field in Form Configuration section (e.g., a "message" textarea field)
+2. Click the delete button (✕) on the right side of that field row
+3. Observe the confirmation dialog
+4. Click "OK" to confirm deletion
+5. Verify field row disappears immediately
+6. Scroll to bottom and click "Save Changes"
 
 **Expected Results:**
-- ✓ Field removed from form preview
-- ✓ Field not displayed on public landing page
-- ✓ Existing leads still retain data from that field
+- ✓ Browser confirmation dialog appears: "Are you sure you want to delete this field?"
+- ✓ After confirming, field row removed immediately from editor
+- ✓ Field not included in form_fields JSON when saving
+- ✓ Success alert: "Landing page updated successfully!"
+- ✓ Field not displayed on public landing page after save
+- ✓ Existing leads that have data for deleted field retain that data (historical data preserved)
+
+**Important Notes:**
+- Deletion is immediate in UI but not persisted until "Save Changes"
+- If you delete a field and don't save, refreshing the page will restore it
+- No undo functionality - must re-add field manually if deleted by mistake
 
 ---
 
@@ -329,31 +367,41 @@
 
 **Pre-conditions:**
 - User is logged in
-- Editing a landing page
+- Creating or editing a landing page
 - MinIO is running (check: `http://localhost:9001`)
-- Have a test image ready (JPEG or PNG, < 5MB)
+- Have a test image ready (JPEG, PNG, GIF, or WebP, < 5MB)
 
 **Test Steps:**
-1. Open landing page editor
-2. Navigate to "Hero Image" section
-3. Click "Upload Image" or "Choose File"
+1. Scroll to "Hero Image" section in the landing page form
+2. Observe the upload area with "📁 Click to upload image" text
+3. Click on the upload area or "Choose File" button
 4. Select an image file from your computer:
    - Example: `marketing-hero.jpg` (1920x1080, 500KB)
-5. Click "Upload" or wait for auto-upload
-6. Click "Save Changes"
+5. Wait for upload to complete (automatic after file selection)
+6. Observe the image preview
+7. Scroll to bottom and click "Save Draft" or "Save Changes"
 
 **Expected Results:**
-- ✓ Upload progress indicator shown during upload
-- ✓ Image preview displayed after upload
-- ✓ Image URL stored in database (MinIO URL)
-- ✓ Success message: "Image uploaded successfully"
+- ✓ During upload: "Uploading..." text shown with spinner
+- ✓ Success alert: "Image uploaded successfully!"
+- ✓ Image preview displayed with full width
+- ✓ "Remove Image" button appears below preview
+- ✓ Image URL stored in formData.hero_image_url
+- ✓ After save: Success alert and image persists
 
 **Validation Points:**
 - Check MinIO console: `http://localhost:9001`
   - Login: minioadmin / minioadmin123
-  - Verify image exists in `dmat-images` bucket
+  - Navigate to "dmat-images" bucket
+  - Verify image file exists with timestamp prefix
 - Database check: `SELECT hero_image_url FROM landing_pages WHERE id = ?;`
 - URL format: `http://localhost:9000/dmat-images/[timestamp]-[filename]`
+- Accepted file types: image/jpeg, image/jpg, image/png, image/gif, image/webp
+
+**Important Notes:**
+- Upload happens immediately on file selection (no separate upload button)
+- Image must be saved with landing page to persist
+- Image is stored separately in MinIO before landing page save
 
 ---
 
@@ -362,20 +410,30 @@
 **Objective:** Replace an existing hero image
 
 **Pre-conditions:**
-- Landing page already has a hero image
+- Landing page already has a hero image uploaded
 
 **Test Steps:**
-1. Open landing page editor
-2. Current hero image is displayed
-3. Click "Replace Image" or "Upload New Image"
-4. Select a different image file
-5. Confirm replacement if prompted
-6. Click "Save Changes"
+1. Open landing page editor (click "Edit" from list)
+2. Scroll to "Hero Image" section
+3. Observe current hero image preview is displayed
+4. Click "Remove Image" button
+5. Wait for confirmation
+6. Upload area reappears
+7. Click upload area and select a different image file
+8. Wait for new image to upload
+9. Click "Save Changes"
 
 **Expected Results:**
-- ✓ Old image preview replaced with new image
-- ✓ Old image URL replaced in database
-- ✓ Old image file may remain in MinIO (optional cleanup)
+- ✓ After removing: Upload area reappears immediately
+- ✓ After selecting new image: "Uploading..." shown, then preview of new image
+- ✓ Success alert: "Image uploaded successfully!"
+- ✓ After save: New image URL stored in database
+- ✓ Old image file remains in MinIO (no automatic cleanup)
+
+**Important Notes:**
+- No direct "Replace" button - must remove then upload new
+- Old images accumulate in MinIO storage (manual cleanup needed)
+- Each upload gets unique timestamp prefix to avoid conflicts
 
 ---
 
@@ -384,18 +442,22 @@
 **Objective:** Remove hero image from landing page
 
 **Pre-conditions:**
-- Landing page has a hero image
+- Landing page has a hero image uploaded
 
 **Test Steps:**
 1. Open landing page editor
-2. Click "Remove Image" or delete icon
-3. Confirm removal
-4. Click "Save Changes"
+2. Scroll to "Hero Image" section with current image preview
+3. Click "Remove Image" button below the preview
+4. Observe upload area reappears
+5. Scroll to bottom and click "Save Changes"
 
 **Expected Results:**
-- ✓ Image preview removed
-- ✓ `hero_image_url` set to NULL in database
-- ✓ Public landing page displays without hero image
+- ✓ Image preview removed immediately after clicking "Remove Image"
+- ✓ Upload area ("📁 Click to upload image") reappears
+- ✓ Success alert: "Landing page updated successfully!"
+- ✓ `hero_image_url` set to NULL or empty string in database
+- ✓ Public landing page displays without hero image (if published)
+- ✓ Image file remains in MinIO storage (not deleted)
 
 ---
 
@@ -404,17 +466,36 @@
 **Objective:** Verify file type and size validation
 
 **Test Steps:**
-1. Attempt to upload invalid file types:
-   - PDF file
-   - MP4 video file
-   - .txt file
-2. Attempt to upload oversized file (> 5MB if limit exists)
+1. Navigate to landing page form, Hero Image section
+2. Attempt to upload invalid file type:
+   - Try uploading a PDF file (e.g., `document.pdf`)
+   - Try uploading a text file (e.g., `notes.txt`)
+   - Try uploading a video file (e.g., `video.mp4`)
+3. Observe error handling
+4. Attempt to upload oversized file:
+   - Create or find image file > 5MB
+   - Try to upload the large file
+5. Observe error handling
 
 **Expected Results:**
-- ✓ Error message: "Invalid file type. Only JPEG and PNG allowed"
-- ✓ Error message: "File size exceeds 5MB limit"
-- ✓ Upload blocked, no file sent to MinIO
-- ✓ User can retry with valid file
+
+**Invalid File Type:**
+- ✓ Error alert appears: "Invalid file type. Please upload JPEG, PNG, GIF, or WebP image."
+- ✓ No upload request sent to server
+- ✓ Upload area remains in initial state
+- ✓ User can close alert and try again
+
+**Oversized File:**
+- ✓ Error alert appears: "File size exceeds 5MB limit."
+- ✓ No upload request sent to server
+- ✓ Upload area remains in initial state
+- ✓ User can close alert and try again
+
+**Validation Details:**
+- Frontend validation happens before API call (prevents unnecessary requests)
+- Accepted MIME types: image/jpeg, image/jpg, image/png, image/gif, image/webp
+- Max file size: 5MB (5 * 1024 * 1024 bytes)
+- Backend also validates via multer middleware as secondary check
 
 ---
 
@@ -425,26 +506,36 @@
 **Objective:** Publish a landing page without WordPress configured
 
 **Pre-conditions:**
-- Landing page in draft status
-- WordPress NOT configured (WP_SITE_URL empty in .env)
+- Landing page exists and is in draft status
+- WordPress NOT configured (WP_SITE_URL empty or not set in backend .env)
+- All required fields completed
 
 **Test Steps:**
-1. Open landing page editor
-2. Verify all required fields completed:
-   - Title, Headline, Body Text, CTA Text
-   - At least 1 form field (email)
-3. Click "Publish" button
-4. Confirm publication if prompted
+1. Navigate to landing pages list
+2. Click "Edit" on a draft landing page
+3. Verify page has required content:
+   - Page Title, Headline filled
+   - At least default form fields (name, email, phone)
+4. Click "Publish" button at bottom right
+5. Wait for confirmation/response
 
 **Expected Results:**
-- ✓ Status changes from "Draft" to "Published"
-- ✓ Success message: "Landing page published successfully"
-- ✓ `published_url` field populated with DMAT-hosted URL
-- ✓ `status` = 'published' in database
-- ✓ `published_at` timestamp set
+- ✓ Success alert: "Landing page published successfully!"
+- ✓ Status badge changes from "Draft" (amber) to "Published" (green) in list
+- ✓ `publish_status` = 'published' in database
+- ✓ `published_at` timestamp set to current time
+- ✓ `published_url` field populated with DMAT-hosted URL (if public serving configured)
+- ✓ `wordpress_post_id` remains NULL
+- ✓ `wordpress_url` remains NULL
 
 **Published URL Format:**
-- `http://localhost:5001/pages/free-marketing-guide-2024.html`
+- Format: `{API_BASE_URL}/api/public/pages/{slug}.html` or custom public URL
+- Example: `http://localhost:5001/api/public/pages/free-marketing-guide-2025.html`
+
+**Important Notes:**
+- Publish button only appears in edit mode, not during initial creation
+- Must save as draft first, then edit and publish
+- No confirmation dialog - publishes immediately on button click
 
 ---
 
@@ -453,68 +544,99 @@
 **Objective:** Publish landing page to WordPress site
 
 **Pre-conditions:**
-- WordPress site configured in `.env`:
+- WordPress site configured in backend `.env`:
   ```
   WP_SITE_URL=https://yoursite.com
   WP_USERNAME=admin
   WP_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
   ```
-- Backend server restarted after configuration
-- WordPress Application Password generated
+- Backend server restarted after .env configuration
+- WordPress Application Password generated (Users → Profile → Application Passwords)
+- Landing page in draft status
 
 **Test Steps:**
-1. Open landing page editor
-2. Complete all required fields
-3. Click "Publish" button
-4. Wait for WordPress publishing process
+1. Navigate to landing pages list
+2. Click "Edit" on a draft landing page
+3. Verify all required content is complete
+4. Click "Publish" button at bottom right
+5. Wait for WordPress publishing process (may take 3-5 seconds)
 
 **Expected Results:**
-- ✓ Success message: "Landing page published to WordPress successfully"
-- ✓ `published_url` contains WordPress post URL (e.g., `https://yoursite.com/free-marketing-guide-2024`)
-- ✓ `wordpress_post_id` stored in database
-- ✓ Status = 'published'
+- ✓ Success alert: "Landing page published successfully!" (or specific WordPress success message)
+- ✓ `publish_status` = 'published' in database
+- ✓ `published_url` contains WordPress post URL (e.g., `https://yoursite.com/free-marketing-guide-2025`)
+- ✓ `wordpress_post_id` stored in database (the WP post ID number)
+- ✓ `wordpress_url` stored with full WordPress post URL
+- ✓ `published_at` timestamp set
 
 **WordPress Verification:**
-1. Login to WordPress admin
-2. Go to Posts → All Posts
+1. Login to WordPress admin (`https://yoursite.com/wp-admin`)
+2. Navigate to Posts → All Posts
 3. Verify new post exists with:
-   - Title matching landing page title
-   - Content including hero image, headline, body text, and form
-   - Status = Published
+   - Title matching landing page title exactly
+   - Content including hero image (if uploaded), headline, subheading, body text, and embedded form
+   - Post status = "Published" (not draft)
    - Slug matching landing page slug
+   - Author set to authenticated WP user
+
+**Error Handling:**
+- If WordPress publish fails, backend returns 500 error with WordPress error details
+- Landing page status may remain draft or partially published
+- Check backend console logs for detailed WordPress API errors
 
 ---
 
 ### Scenario 5.3: Test WordPress Connection
 **Feature:** WordPress Integration
+**Status:** ⚠️ NO UI - API ONLY
 **Objective:** Verify WordPress credentials are valid
 
 **Pre-conditions:**
-- WordPress configured in .env
+- WordPress configured in backend .env
+- JWT authentication token available
 
-**Test Steps:**
-1. Use API endpoint or admin panel "Test Connection" button
-2. Make request to: `GET /api/admin/wordpress/test`
-3. Include JWT token in Authorization header
+**Test Steps (via API/cURL):**
+1. Get JWT token by logging in: `POST /api/auth/login`
+2. Make authenticated request:
+```bash
+curl -X GET http://localhost:5001/api/admin/wordpress/test \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json"
+```
 
 **Expected Results:**
-- ✓ Success response with WordPress site info:
-  ```json
-  {
-    "success": true,
-    "message": "WordPress connection successful",
-    "siteInfo": {
-      "name": "My WordPress Site",
-      "url": "https://yoursite.com",
-      "username": "admin"
-    }
+
+**Success Case:**
+```json
+{
+  "success": true,
+  "message": "WordPress connection successful",
+  "siteInfo": {
+    "name": "My WordPress Site",
+    "url": "https://yoursite.com",
+    "description": "Site description"
   }
+}
+```
+
+**Error Cases:**
+- Invalid Application Password:
+  ```json
+  {"success": false, "message": "Authentication failed: Invalid credentials"}
+  ```
+- Wrong site URL / Site unreachable:
+  ```json
+  {"success": false, "message": "Cannot connect to WordPress site"}
+  ```
+- Missing credentials (WP_SITE_URL not set):
+  ```json
+  {"success": false, "message": "WordPress is not configured"}
   ```
 
-**Error Cases to Test:**
-- Invalid Application Password → "Authentication failed"
-- Wrong site URL → "Cannot reach WordPress site"
-- Missing credentials → "WordPress is not configured"
+**Important Notes:**
+- No UI button for testing connection exists in current version
+- Must test via API endpoint directly
+- Useful for debugging WordPress integration issues before publishing
 
 ---
 
@@ -691,94 +813,150 @@ SELECT * FROM leads WHERE email = 'john.smith@example.com' ORDER BY created_at D
 - At least 3 leads exist in database
 
 **Test Steps:**
-1. Navigate to `/admin/leads` or click "Leads" in navigation
-2. Observe the leads list
+1. Navigate to `/leads` or click "Leads" in navigation menu
+2. Observe the leads list and toolbar
 
 **Expected Results:**
-- ✓ List displays all leads in reverse chronological order (newest first)
-- ✓ Each lead shows:
+- ✓ Page header shows "Leads" with subtitle "Manage and track your leads"
+- ✓ "📥 Export CSV" button visible in top right
+- ✓ Search box with placeholder "Search leads..."
+- ✓ Status filter buttons: "All", "New", "Contacted", "Qualified", "Converted"
+- ✓ Table with columns:
+  - Checkbox (for bulk selection)
   - Name
   - Email
-  - Landing Page Title
-  - Submission Date/Time
-  - Status (if applicable)
-- ✓ View Details button for each lead
-- ✓ Pagination if more than 10 leads (or configured page size)
+  - Phone (formatted as (123) 456-7890)
+  - Source (landing page title)
+  - Assigned To (user name or "-")
+  - Status (colored badge: New=blue, Contacted=amber, Qualified=indigo, Converted=green)
+  - Submitted (formatted date/time)
+  - "View" button
+- ✓ Leads displayed in reverse chronological order (newest first)
+- ✓ Selecting leads shows bulk actions bar at top with status update buttons and assign dropdown
+
+**Important Notes:**
+- Route is `/leads` NOT `/admin/leads`
+- No traditional pagination shown (may load more on scroll or fixed limit)
+- Phone numbers auto-formatted
+- Detail panel opens on right side (not separate page)
 
 ---
 
 ### Scenario 7.2: View Lead Details
-**Feature:** Lead Details
+**Feature:** Lead Details Panel
 **Objective:** View all information about a specific lead
 
 **Pre-conditions:**
 - At least one lead exists
 
 **Test Steps:**
-1. From leads list, click "View Details" on any lead
-2. Observe the detail view
+1. From leads list table, click "View" button on any lead row
+2. Observe the right-side panel that slides in
 
 **Expected Results:**
-- ✓ All form fields and values displayed:
-  - Full Name: "John Smith"
-  - Email: "john.smith@example.com"
-  - Phone: "(555) 123-4567"
-  - Any custom fields and their values
-- ✓ Metadata displayed:
-  - Landing Page Title (linked to landing page)
-  - Submitted At: "Dec 10, 2024 2:30 PM"
-  - Lead ID
-- ✓ "Back to Leads" or navigation available
+- ✓ Detail panel opens on right side of screen (overlay or push layout)
+- ✓ Close button (×) visible at top right of panel
+- ✓ **Contact Information** section shows:
+  - Name with value
+  - Email as clickable mailto: link
+  - Phone as clickable tel: link (formatted)
+  - Any additional custom field values
+- ✓ **Source** section shows:
+  - Source: Landing page title (or "Direct" if no landing page)
+  - Submitted: Formatted date/time
+- ✓ **Assignment** section shows:
+  - "Assigned To" dropdown with current assignment
+  - List of users plus "Unassigned" option
+  - Changes save automatically on selection
+- ✓ **Status** section shows:
+  - Current status as colored badge
+  - Action buttons: "New", "Contacted", "Qualified", "Converted"
+  - Current status button is disabled
+- ✓ **Notes & Comments** section shows:
+  - Textarea for adding new note (max 1000 chars with counter)
+  - "Add Note" button (disabled if empty)
+  - List of existing notes with author, timestamp, and delete button (×)
+- ✓ **Metadata** section (if available):
+  - IP Address
+  - User Agent
 
-**Custom Fields Display:**
-- All custom fields from the landing page form shown
-- Values formatted appropriately (URLs clickable, etc.)
+**Important Notes:**
+- Detail panel is a slide-in panel, NOT a separate page
+- No "Back" button - close with × or click outside panel
+- Email and phone are interactive links
+- Assignment and status changes happen in the detail panel
+- Notes are threaded conversation style
 
 ---
 
-### Scenario 7.3: Filter Leads by Landing Page
-**Feature:** Lead Filtering
-**Objective:** Filter leads by source landing page
+### Scenario 7.3: Filter Leads by Status
+**Feature:** Lead Status Filtering
+**Objective:** Filter leads by their current status
 
 **Pre-conditions:**
-- Leads from multiple landing pages exist
+- Leads with different statuses exist (New, Contacted, Qualified, Converted)
 
 **Test Steps:**
-1. On leads list page, locate filter dropdown
-2. Select a specific landing page from dropdown
-3. Click "Apply Filter" or filter applies automatically
+1. On leads list page, observe status filter buttons below search box
+2. Click "Contacted" status button
+3. Observe filtered results
+4. Click "All" to clear filter
 
 **Expected Results:**
-- ✓ Only leads from selected landing page displayed
-- ✓ Count updates to show filtered number
-- ✓ Filter selection persists if page refreshed
-- ✓ "Clear Filter" option available
+- ✓ Only leads with "Contacted" status displayed in table
+- ✓ "Contacted" button appears active/selected (highlighted)
+- ✓ Table updates immediately (client-side filtering)
+- ✓ Click "All" to show all leads again
+- ✓ Filter does NOT persist after page refresh
+
+**Additional Statuses Available:**
+- All (default, shows everything)
+- New
+- Contacted
+- Qualified
+- Converted
+
+**Important Notes:**
+- No landing page filter dropdown in current UI
+- Only status filtering via buttons
+- Filtering happens client-side (instant, no API call)
 
 ---
 
 ### Scenario 7.4: Search Leads
 **Feature:** Lead Search
-**Objective:** Search leads by email or name
+**Objective:** Search leads by multiple fields
 
 **Pre-conditions:**
 - Multiple leads exist
 
 **Test Steps:**
-1. Locate search box on leads list page
+1. Locate search box at top of leads page (placeholder "Search leads...")
 2. Enter search term: "john"
-3. Press Enter or click Search button
+3. Observe results update automatically (no Enter key needed)
 
 **Expected Results:**
-- ✓ Results filtered to show only matching leads
-- ✓ Matches found in name OR email
+- ✓ Results filter automatically as you type (instant client-side search)
+- ✓ Searches across multiple fields:
+  - Name (lead_data.name)
+  - Email (lead_data.email)
+  - Phone (lead_data.phone)
+  - Landing page title (source)
 - ✓ Search is case-insensitive
-- ✓ "No results found" message if no matches
-- ✓ Clear search button available
+- ✓ Empty state message if no matches
+- ✓ Clear search by deleting text
 
 **Test Various Searches:**
-- Partial email: "smith@" → finds john.smith@example.com
+- Partial email: "smith" → finds john.smith@example.com
 - Full name: "John Smith" → finds exact match
 - Partial name: "Joh" → finds John, Johnny, etc.
+- Phone digits: "555" → finds leads with 555 in phone
+- Landing page: "marketing" → finds leads from "Marketing Guide" page
+
+**Important Notes:**
+- No separate "Search" button - updates as you type
+- No "Clear" button - just delete text
+- Search respects active status filter (searches within filtered results)
 
 ---
 
@@ -790,16 +968,30 @@ SELECT * FROM leads WHERE email = 'john.smith@example.com' ORDER BY created_at D
 - At least 5 leads exist
 
 **Test Steps:**
-1. On leads list page, click "Export to CSV" button
-2. Optionally apply filter first (e.g., specific landing page)
-3. Download should start automatically
+1. On leads list page, click "📥 Export CSV" button at top right
+2. Optionally apply status filter or search first
+3. Wait for download to start automatically
 
 **Expected Results:**
-- ✓ CSV file downloads to browser
-- ✓ Filename format: `leads-export-2024-12-10.csv`
-- ✓ CSV contains all visible leads (respects filters)
-- ✓ CSV headers match form fields:
-  - ID, Name, Email, Phone, Landing Page, Submitted At, [Custom Fields...]
+- ✓ CSV file downloads to browser immediately
+- ✓ Filename format: `leads-export-YYYY-MM-DD.csv` (e.g., `leads-export-2025-12-10.csv`)
+- ✓ CSV contains all filtered/searched leads (respects current view)
+- ✓ CSV has 8 columns:
+  - ID
+  - Name
+  - Email
+  - Phone
+  - Landing Page (title)
+  - Source (landing page title or "Direct")
+  - Status
+  - Created At (ISO format)
+- ✓ Data properly escaped (handles commas in names, etc.)
+
+**Important Notes:**
+- Export respects search filter (only exports visible/filtered results)
+- Export respects status filter
+- Does NOT include custom fields beyond the standard ones
+- No progress indicator (instant download for small datasets)
 - ✓ Data properly escaped (commas, quotes handled)
 
 **CSV Validation:**
@@ -810,26 +1002,42 @@ SELECT * FROM leads WHERE email = 'john.smith@example.com' ORDER BY created_at D
 
 ---
 
-### Scenario 7.6: Delete Lead
-**Feature:** Lead Deletion
-**Objective:** Remove a lead from the system
+### Scenario 7.6: Bulk Update Lead Status
+**Feature:** Bulk Lead Status Update
+**Objective:** Update status of multiple leads at once
 
 **Pre-conditions:**
-- At least one lead exists
+- At least 3 leads exist with different statuses
 
 **Test Steps:**
-1. On leads list, click "Delete" button for a lead
-2. Confirm deletion in confirmation dialog
+1. On leads list page, select multiple leads using checkboxes
+2. Observe bulk actions bar appears at top
+3. Click one of the status buttons (e.g., "Contacted")
+4. Observe confirmation or immediate update
 
 **Expected Results:**
-- ✓ Confirmation dialog: "Are you sure you want to delete this lead?"
-- ✓ After confirmation, lead removed from list
-- ✓ Success message displayed
-- ✓ Lead removed from database (soft delete or hard delete)
+- ✓ Bulk actions bar shows "[N] lead(s) selected"
+- ✓ Status update buttons available: "New", "Contacted", "Qualified", "Converted"
+- ✓ Click "Contacted" updates all selected leads to that status
+- ✓ Status badges in table update for all affected leads
+- ✓ Bulk action bar shows "Clear Selection" button
+- ✓ Selection clears after update completes
 
-**Important:**
-- Deletion should be irreversible (unless soft delete implemented)
-- Consider data retention policies
+**Additional Bulk Actions:**
+- **Assign To:** Dropdown to assign all selected leads to a user or "Unassigned"
+- Changes save automatically
+
+**Important Notes:**
+- ⚠️ **NO DELETE FUNCTIONALITY** in current UI - leads cannot be deleted from the interface
+- Delete endpoint exists in API (`DELETE /api/admin/leads/:id`) but no UI button
+- To remove a lead, must use API directly or database access
+- This is intentional for data retention and audit purposes
+
+**API Delete (for reference only):**
+```bash
+curl -X DELETE http://localhost:5001/api/admin/leads/123 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
 
 ---
 

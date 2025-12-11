@@ -10,10 +10,14 @@ const getAuthToken = () => {
 // Helper function to handle API responses
 const handleResponse = async (response) => {
   if (!response.ok) {
-    const error = await response.json().catch(() => ({
+    const errorData = await response.json().catch(() => ({
       message: `HTTP error! status: ${response.status}`
     }));
-    throw new Error(error.message || `HTTP error! status: ${response.status}`);
+
+    // Backend sends errors in format: { success: false, error: { message: "...", code: "..." } }
+    // Or sometimes just { message: "..." }
+    const errorMessage = errorData.error?.message || errorData.message || `HTTP error! status: ${response.status}`;
+    throw new Error(errorMessage);
   }
   return response.json();
 };
@@ -194,10 +198,13 @@ export const deleteLandingPage = async (id) => {
  */
 export const getPreview = async (id) => {
   const token = getAuthToken();
-  const response = await fetch(`${API_BASE_URL}/api/admin/landing-pages/${id}/preview`, {
+  // Add cache-busting timestamp to force fresh preview every time
+  const cacheBuster = `?t=${Date.now()}`;
+  const response = await fetch(`${API_BASE_URL}/api/admin/landing-pages/${id}/preview${cacheBuster}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
+    cache: 'no-store', // Disable browser caching
   });
 
   if (!response.ok) {
