@@ -326,7 +326,7 @@ export const publishLandingPage = async (req, res) => {
       }
     } else {
       // WordPress not configured, use DMAT-hosted URL
-      publishedUrl = `${process.env.PUBLIC_URL || 'http://localhost:5001'}/pages/${existing.slug}.html`;
+      publishedUrl = `${process.env.API_BASE_URL || 'http://localhost:5001'}/public/${existing.slug}`;
       console.log('WordPress not configured, using DMAT-hosted URL');
     }
 
@@ -337,6 +337,7 @@ export const publishLandingPage = async (req, res) => {
       data: {
         ...publishedPage,
         ...wordpressData,
+        public_url: publishedUrl, // Include public URL in response
       },
       message: isWordPressConfigured()
         ? 'Landing page published to WordPress successfully'
@@ -718,8 +719,6 @@ function generateLandingPageHTML(page, isPreview = false) {
       try {
         // Use absolute URL to backend API server
         const apiUrl = 'http://localhost:5001/api/public/leads';
-        console.log('Submitting to:', apiUrl);
-        alert('About to submit to: ' + apiUrl);
 
         const response = await fetch(apiUrl, {
           method: 'POST',
@@ -762,3 +761,56 @@ function generateLandingPageHTML(page, isPreview = false) {
 </html>
   `.trim();
 }
+
+/**
+ * Get public landing page by slug (no authentication required)
+ * GET /public/:slug
+ */
+export const getPublicLandingPage = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    // Get landing page by slug
+    const landingPage = await LandingPageModel.findBySlug(slug);
+
+    if (!landingPage) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Landing page not found',
+        error: {
+          code: 'NOT_FOUND',
+          message: `No landing page found with slug: ${slug}`
+        }
+      });
+    }
+
+    // Only allow access to published landing pages
+    if (landingPage.publish_status !== 'published') {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Landing page not found',
+        error: {
+          code: 'NOT_PUBLISHED',
+          message: 'This landing page is not currently published'
+        }
+      });
+    }
+
+    // Generate and return HTML
+    const html = generateLandingPageHTML(landingPage, false);
+
+    res.setHeader('Content-Type', 'text/html');
+    return res.send(html);
+
+  } catch (error) {
+    console.error('Error fetching public landing page:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to load landing page',
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: error.message
+      }
+    });
+  }
+};

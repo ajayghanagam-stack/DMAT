@@ -802,6 +802,409 @@ SELECT * FROM leads WHERE email = 'john.smith@example.com' ORDER BY created_at D
 
 ---
 
+### Scenario 6.6: Admin Publishes Landing Page and Gets Public URL
+**Feature:** Landing Page Publishing & URL Distribution
+**Objective:** Verify admin can publish a landing page and obtain the public URL for distribution
+
+**Pre-conditions:**
+- User is logged in as admin
+- Landing page created and saved as draft
+- Landing page has slug: "free-marketing-campaign-dec-2025"
+
+**Test Steps:**
+1. Navigate to landing page edit page
+2. Click "Publish" button
+3. Confirm publish action in confirmation dialog
+4. Observe the publish success modal
+
+**Expected Results:**
+- ✓ Publish success modal appears with title: "🎉 Landing Page Published Successfully!"
+- ✓ Modal displays message: "Your landing page is now live and ready to collect leads."
+- ✓ Public URL section shows:
+  - Label: "Public URL:"
+  - Read-only input field with URL: `http://localhost:5001/public/free-marketing-campaign-dec-2025`
+  - "📋 Copy URL" button next to input
+- ✓ "Sharing suggestions" section lists distribution methods:
+  - 📧 Email campaigns (Mailchimp, SendGrid, etc.)
+  - 📱 Social media (Facebook, LinkedIn, Twitter, Instagram)
+  - 💰 Paid advertising (Google Ads, Facebook Ads)
+  - 📄 QR codes (Business cards, flyers, posters)
+  - 🌐 Website CTAs and blog posts
+- ✓ Modal footer contains:
+  - "👁 View Landing Page" button (opens URL in new tab)
+  - "Done" button (closes modal)
+
+**Copy URL Functionality Test:**
+1. Click "📋 Copy URL" button
+2. Expected: Alert appears saying "URL copied to clipboard!"
+3. Paste into text editor (Ctrl+V or Cmd+V)
+4. Expected: URL `http://localhost:5001/public/free-marketing-campaign-dec-2025` is pasted
+
+**View Landing Page Test:**
+1. Click "👁 View Landing Page" button
+2. Expected: New tab opens with public landing page
+3. Expected: No preview banner visible
+4. Expected: Form is fully functional
+
+**API Verification:**
+```javascript
+// Backend response should include public_url
+{
+  "success": true,
+  "data": {
+    "id": 15,
+    "title": "Free Marketing Campaign",
+    "slug": "free-marketing-campaign-dec-2025",
+    "publish_status": "published",
+    "published_at": "2025-12-11T10:30:00Z",
+    "published_url": "http://localhost:5001/public/free-marketing-campaign-dec-2025",
+    "public_url": "http://localhost:5001/public/free-marketing-campaign-dec-2025"
+  },
+  "message": "Landing page published successfully (WordPress not configured)"
+}
+```
+
+**Important Notes:**
+- Modal only appears after successful publish
+- URL format is `{backend_url}/public/{slug}`
+- Copy functionality works in modern browsers (navigator.clipboard API)
+- Fallback copy method for older browsers using textarea element
+
+---
+
+### Scenario 6.7: External User Accesses Public Landing Page (Incognito Mode)
+**Feature:** Public Landing Page Access
+**Objective:** Verify external users can access published landing pages without authentication
+
+**Pre-conditions:**
+- Landing page published with slug: "free-marketing-campaign-dec-2025"
+- Public URL: `http://localhost:5001/public/free-marketing-campaign-dec-2025`
+
+**Test Steps:**
+1. Open browser in incognito/private mode (Ctrl+Shift+N in Chrome)
+2. Navigate to: `http://localhost:5001/public/free-marketing-campaign-dec-2025`
+3. Observe the page content
+
+**Expected Results:**
+- ✓ Landing page loads successfully (HTTP 200)
+- ✓ **No preview banner** displayed (confirms public mode)
+- ✓ **No authentication required** (no login prompt)
+- ✓ Page displays all content sections:
+  - Hero section with headline and subheadline
+  - Body content with HTML formatting
+  - Form section with all configured fields
+  - Images loaded from MinIO storage (if configured)
+  - CTA button with correct text
+- ✓ Page title matches landing page title
+- ✓ Form is interactive and ready for submission
+- ✓ No admin controls or edit buttons visible
+- ✓ CORS headers allow access from any origin
+
+**Browser Console Verification:**
+1. Open browser DevTools (F12)
+2. Check Console tab
+3. Expected: No CORS errors
+4. Expected: No authentication errors
+5. Expected: No 404 errors for assets
+
+**Network Tab Verification:**
+1. Open Network tab in DevTools
+2. Reload page
+3. Check initial request to `/public/free-marketing-campaign-dec-2025`
+4. Expected Response Headers:
+   - `Content-Type: text/html`
+   - `Access-Control-Allow-Origin: *` (for public routes)
+   - Status: `200 OK`
+
+**Test Invalid/Unpublished Slug:**
+1. Navigate to: `http://localhost:5001/public/invalid-slug-123`
+2. Expected: JSON error response with 404 status
+   ```json
+   {
+     "status": "error",
+     "message": "Landing page not found",
+     "error": {
+       "code": "NOT_FOUND",
+       "message": "No landing page found with slug: invalid-slug-123"
+     }
+   }
+   ```
+
+**Test Draft Landing Page Access:**
+1. Change landing page status to "draft" in database
+2. Navigate to public URL
+3. Expected: JSON error response with 404 status
+   ```json
+   {
+     "status": "error",
+     "message": "Landing page not found",
+     "error": {
+       "code": "NOT_PUBLISHED",
+       "message": "This landing page is not currently published"
+     }
+   }
+   ```
+
+**Important Notes:**
+- Public URLs work in any browser without authentication
+- No JWT token required for `/public/:slug` routes
+- Different CORS policy than admin routes (allows all origins)
+- Draft pages return 404 to external users (security feature)
+
+---
+
+### Scenario 6.8: External User Submits Lead Form and Admin Verifies
+**Feature:** End-to-End Lead Capture Flow
+**Objective:** Complete external user enrollment journey from URL to lead creation
+
+**Pre-conditions:**
+- Landing page published with public URL
+- Admin has copied and distributed the public URL
+- Form configured with fields: Full Name, Email, Phone
+
+**Test Steps - External User (Incognito Browser):**
+1. Open incognito/private browser window
+2. Navigate to public URL: `http://localhost:5001/public/free-marketing-campaign-dec-2025`
+3. Verify page loads without errors
+4. Fill out the form:
+   - **Full Name:** "Sarah Johnson"
+   - **Email:** "sarah.johnson@example.com"
+   - **Phone:** "555-987-6543"
+5. Click CTA button (e.g., "Get My Free Guide")
+6. Observe the submission process
+
+**Expected Results - Form Submission:**
+- ✓ Form submits via AJAX POST to `http://localhost:5001/api/public/leads`
+- ✓ Success message appears: "Thank you! Your information has been submitted."
+- ✓ Form fields are cleared or disabled
+- ✓ No page reload occurs
+- ✓ Browser console shows no errors
+
+**Network Request Verification:**
+1. Open DevTools Network tab before submission
+2. Submit form
+3. Find POST request to `/api/public/leads`
+4. Expected Request:
+   ```json
+   {
+     "landing_page_id": 15,
+     "form_data": {
+       "Full Name": "Sarah Johnson",
+       "Email": "sarah.johnson@example.com",
+       "Phone": "555-987-6543"
+     }
+   }
+   ```
+5. Expected Response (Status 201):
+   ```json
+   {
+     "success": true,
+     "message": "Lead captured successfully",
+     "lead": {
+       "id": 42,
+       "landing_page_id": 15,
+       "name": "Sarah Johnson",
+       "email": "sarah.johnson@example.com",
+       "phone": "555-987-6543",
+       "status": "new",
+       "submitted_at": "2025-12-11T14:30:00Z"
+     }
+   }
+   ```
+
+**Test Steps - Admin Verification:**
+1. In separate authenticated browser session, log in as admin
+2. Navigate to Leads page (`/leads`)
+3. Look for the newly submitted lead
+
+**Expected Results - Admin Panel:**
+- ✓ New lead appears at top of leads list (newest first)
+- ✓ Lead details match submission:
+  - Name: "Sarah Johnson"
+  - Email: "sarah.johnson@example.com"
+  - Phone: "(555) 987-6543" (formatted)
+  - Status: Badge shows "New" in blue color
+  - Source: Shows landing page title "Free Marketing Campaign"
+  - Submitted: Shows current date/time
+  - Assigned To: Shows "-" (unassigned)
+- ✓ Click "View" button to open lead details panel
+- ✓ Lead details panel displays all submitted information
+- ✓ Contact information section shows clickable email (mailto:) and phone (tel:) links
+
+**Database Verification:**
+```sql
+SELECT * FROM leads
+WHERE email = 'sarah.johnson@example.com'
+ORDER BY created_at DESC
+LIMIT 1;
+```
+- ✓ Record exists with correct values
+- ✓ `landing_page_id` matches published landing page ID (15)
+- ✓ `status` = 'new'
+- ✓ `form_data` JSONB column contains all submitted fields
+- ✓ `submitted_at` timestamp matches submission time
+
+**Important Notes:**
+- This scenario demonstrates complete external user journey
+- No authentication required for external user
+- Lead immediately visible to admin after submission
+- Form submission works from any origin (public CORS policy)
+- Phone number auto-formatted in admin panel display
+
+---
+
+### Scenario 6.9: URL Distribution Methods and Best Practices
+**Feature:** Landing Page URL Distribution
+**Objective:** Document various methods to distribute public landing page URLs
+
+**Distribution Channels:**
+
+**1. Email Campaigns:**
+- Copy public URL from publish success modal
+- Paste into email campaign platforms:
+  - Mailchimp: Add as button or hyperlink in email template
+  - SendGrid: Include in campaign body or footer
+  - Email signature: Add as clickable link
+- Use UTM parameters for tracking: `?utm_source=email&utm_campaign=dec2025`
+- Test email in inbox before sending to list
+
+**2. Social Media Sharing:**
+- **Facebook:**
+  - Post as status update with URL
+  - Add to Facebook Ads campaign destination
+  - Include in page bio/about section
+- **LinkedIn:**
+  - Share in post with compelling copy
+  - Add to company page featured section
+  - Include in LinkedIn Ads
+- **Twitter/X:**
+  - Tweet with shortened URL (bit.ly, tinyurl)
+  - Pin to profile for visibility
+- **Instagram:**
+  - Add to bio link (Linktree, Beacons)
+  - Share in Stories with "Link" sticker
+  - Include in post captions (though not clickable)
+
+**3. Paid Advertising:**
+- **Google Ads:**
+  - Use as final URL in search ads
+  - Add to display ad campaigns
+  - Set as destination for Google Shopping ads
+- **Facebook/Instagram Ads:**
+  - Set as website destination in ad setup
+  - Use with "Learn More" or "Sign Up" CTA button
+- **LinkedIn Ads:**
+  - Sponsored content destination URL
+  - Lead Gen Form alternative
+
+**4. QR Code Generation:**
+- Use online QR generator (qr-code-generator.com, qr.io)
+- Input public URL: `http://localhost:5001/public/free-marketing-campaign-dec-2025`
+- Download QR code as PNG/SVG
+- Print on:
+  - Business cards
+  - Flyers and brochures
+  - Posters and banners
+  - Product packaging
+  - Event signage
+- Test QR code with phone camera before printing
+
+**5. Website Integration:**
+- Add as CTA button on homepage
+- Include in blog post content
+- Create popup with link
+- Add to website footer
+- Embed in sidebar widget
+- Create dedicated landing page with redirect
+
+**6. Direct Sharing:**
+- Copy URL from modal and send via:
+  - Text message (SMS)
+  - WhatsApp/Telegram
+  - Slack/Discord
+  - Email (one-to-one)
+
+**URL Tracking Best Practices:**
+- Add UTM parameters to track sources:
+  ```
+  http://localhost:5001/public/slug?utm_source=facebook&utm_medium=social&utm_campaign=dec2025
+  ```
+- Use different URLs for different channels to measure effectiveness
+- Monitor lead sources in admin analytics dashboard
+- A/B test different headlines by creating multiple landing pages
+
+**Important Notes:**
+- Public URL format: `{backend_url}/public/{slug}`
+- URLs work without authentication
+- CORS allows embedding in iframes (if needed)
+- Production URLs would use domain: `https://yourdomain.com/public/slug`
+- Slug should be memorable and descriptive for easy sharing
+
+---
+
+### Scenario 6.10: Preview Mode Lead Capture (Admin Testing)
+**Feature:** Preview Mode Lead Submission
+**Objective:** Verify admins can test lead submissions in preview mode before publishing
+
+**Pre-conditions:**
+- User logged in as admin
+- Landing page in "draft" status (not published)
+- Form configured with fields
+
+**Test Steps:**
+1. Navigate to landing pages list (`/landing-pages`)
+2. Click "Preview" button on draft landing page
+3. New tab opens with URL: `http://localhost:5001/api/admin/landing-pages/:id/preview?token=...`
+4. Observe the preview banner at top of page
+
+**Expected Results - Preview Banner:**
+- ✓ Blue banner at top of page (sticky position)
+- ✓ Banner text: "🔍 PREVIEW MODE - Lead submissions will be saved for testing"
+- ✓ Banner background: #2196F3 (blue)
+- ✓ Banner text color: white
+- ✓ Banner stays visible when scrolling
+
+**Test Lead Submission in Preview:**
+1. Fill out the form with test data:
+   - **Full Name:** "Test User Preview"
+   - **Email:** "test.preview@example.com"
+   - **Phone:** "555-111-2222"
+2. Click CTA button
+3. Observe submission
+
+**Expected Results:**
+- ✓ Form submits successfully
+- ✓ Success message displayed
+- ✓ Lead saved to database (despite draft status)
+- ✓ Form posts to: `http://localhost:5001/api/public/leads`
+
+**Admin Verification:**
+1. Return to admin panel (authenticated session)
+2. Navigate to Leads page
+3. Verify test lead appears in list
+
+**Expected Results:**
+- ✓ Lead visible with email "test.preview@example.com"
+- ✓ Source shows landing page title (even though draft)
+- ✓ Status: "new"
+- ✓ All form data captured correctly
+
+**Important Use Cases:**
+- Allows admin to test form before publishing
+- Verifies form fields capture data correctly
+- Tests custom field configurations
+- Confirms success messages display properly
+- Validates form validation rules
+
+**Important Notes:**
+- Preview mode uses authentication (token in query param)
+- Preview URL format: `/api/admin/landing-pages/:id/preview?token=...`
+- Preview allows submissions from draft pages (testing feature)
+- Published pages use different URL: `/public/:slug`
+- Preview banner distinguishes from public pages
+
+---
+
 ## 7. Lead Management
 
 ### Scenario 7.1: View Leads List

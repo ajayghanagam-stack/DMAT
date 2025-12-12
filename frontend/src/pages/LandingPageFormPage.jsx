@@ -27,6 +27,8 @@ function LandingPageFormPage() {
 
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [showPublishSuccess, setShowPublishSuccess] = useState(false);
+  const [publicUrl, setPublicUrl] = useState('');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -233,15 +235,40 @@ function LandingPageFormPage() {
     try {
       setPublishing(true);
       setError(null);
-      await publishLandingPage(id);
-      alert('Landing page published successfully!');
-      navigate('/landing-pages');
+      const response = await publishLandingPage(id);
+
+      // Generate public URL
+      const backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+      const url = response.data?.public_url || `${backendUrl}/public/${formData.slug}`;
+      setPublicUrl(url);
+      setShowPublishSuccess(true);
     } catch (err) {
       setError(err.message);
       alert(`Error publishing: ${err.message}`);
     } finally {
       setPublishing(false);
     }
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      alert('URL copied to clipboard!');
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = publicUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('URL copied to clipboard!');
+    }
+  };
+
+  const closePublishModal = () => {
+    setShowPublishSuccess(false);
+    navigate('/landing-pages');
   };
 
   const handleDelete = async () => {
@@ -607,6 +634,65 @@ function LandingPageFormPage() {
           )}
         </div>
       </div>
+
+      {/* Publish Success Modal */}
+      {showPublishSuccess && (
+        <div className="modal-overlay" onClick={closePublishModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>🎉 Landing Page Published Successfully!</h2>
+            </div>
+            <div className="modal-body">
+              <p>Your landing page is now live and ready to collect leads.</p>
+
+              <div className="public-url-section">
+                <label>Public URL:</label>
+                <div className="url-display">
+                  <input
+                    type="text"
+                    value={publicUrl}
+                    readOnly
+                    className="url-input"
+                  />
+                  <button
+                    className="copy-button"
+                    onClick={copyToClipboard}
+                  >
+                    📋 Copy URL
+                  </button>
+                </div>
+              </div>
+
+              <div className="sharing-suggestions">
+                <h3>Share this URL through:</h3>
+                <ul>
+                  <li>📧 Email campaigns (Mailchimp, SendGrid, etc.)</li>
+                  <li>📱 Social media (Facebook, LinkedIn, Twitter, Instagram)</li>
+                  <li>💰 Paid advertising (Google Ads, Facebook Ads)</li>
+                  <li>📄 QR codes (Business cards, flyers, posters)</li>
+                  <li>🌐 Website CTAs and blog posts</li>
+                </ul>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="secondary-button"
+                onClick={() => {
+                  window.open(publicUrl, '_blank');
+                }}
+              >
+                👁 View Landing Page
+              </button>
+              <button
+                className="primary-button"
+                onClick={closePublishModal}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

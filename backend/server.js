@@ -12,6 +12,7 @@ import analyticsRoutes from './src/routes/analyticsRoutes.js';
 import templateRoutes from './src/routes/templateRoutes.js';
 import uploadRoutes from './src/routes/uploadRoutes.js';
 import { initializeStorage } from './src/services/storage.js';
+import { getPublicLandingPage } from './src/controllers/landingPageController.js';
 
 // Load environment variables
 dotenv.config();
@@ -20,18 +21,25 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Middleware
-// Public API routes - allow all origins (for form submissions from any domain)
-app.use('/api/public', cors({
-  origin: '*',
-  methods: ['POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-}));
+// CORS configuration with specific routes
+const corsOptions = (req, res, next) => {
+  // Public landing pages and lead submissions - allow all origins
+  if (req.path.startsWith('/public/') || req.path.startsWith('/api/public/')) {
+    cors({
+      origin: '*',
+      methods: ['GET', 'POST', 'OPTIONS'],
+      allowedHeaders: ['Content-Type']
+    })(req, res, next);
+  } else {
+    // Admin routes - restrict to configured origin
+    cors({
+      origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+      credentials: true
+    })(req, res, next);
+  }
+};
 
-// Admin API routes - restrict to configured origin
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-  credentials: true
-}));
+app.use(corsOptions);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -53,6 +61,10 @@ app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/admin/templates', templateRoutes);
 app.use('/api/admin/upload', uploadRoutes);
 app.use('/api/public', publicRoutes);
+
+// Public landing page route (no authentication required)
+// This must come before 404 handler
+app.get('/public/:slug', getPublicLandingPage);
 
 // Root route
 app.get('/', (req, res) => {
@@ -154,6 +166,8 @@ app.listen(PORT, async () => {
   console.log(`   - DELETE /api/admin/upload/image`);
   console.log(`\n   Lead Capture (Public):`);
   console.log(`   - POST   /api/public/leads`);
+  console.log(`\n   Public Landing Pages:`);
+  console.log(`   - GET    /public/:slug`);
   console.log(`\n📝 Admin endpoints require Authorization header: Bearer <token>`);
   console.log(`📝 Public endpoints require no authentication`);
   console.log('='.repeat(60));
