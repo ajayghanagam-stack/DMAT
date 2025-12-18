@@ -336,8 +336,9 @@ If frontend can't connect:
 ## 🔗 Related Documentation
 
 - [Main README](../README.md) - Full project documentation
-- [WordPress Setup Guide](../WORDPRESS_SETUP.md) - WordPress integration
-- [MinIO Setup Guide](../MINIO_SETUP.md) - Image storage setup
+- [WordPress Setup Guide](../docs/setup/WORDPRESS_SETUP.md) - WordPress integration
+- [MinIO Setup Guide](../docs/setup/MINIO_SETUP.md) - Image storage setup
+- [Google Setup Guide](../docs/setup/GOOGLE_SETUP.md) - Google OAuth & APIs
 - [Testing Scenarios](../docs/TESTING_SCENARIOS.md) - UI testing guide
 - [Frontend README](../frontend/README.md) - Frontend documentation
 - [Database Documentation](../database/Database.md) - Database structure

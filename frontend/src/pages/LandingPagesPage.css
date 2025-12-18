@@ -181,6 +181,18 @@
   color: #2d3748;
 }
 
+.meta-value.public-link {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.meta-value.public-link:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
 .page-card-actions {
   display: flex;
   gap: 8px;

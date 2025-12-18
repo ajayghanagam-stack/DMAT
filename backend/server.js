@@ -11,6 +11,10 @@ import authRoutes from './src/routes/authRoutes.js';
 import analyticsRoutes from './src/routes/analyticsRoutes.js';
 import templateRoutes from './src/routes/templateRoutes.js';
 import uploadRoutes from './src/routes/uploadRoutes.js';
+import googleOAuthRoutes from './src/routes/googleOAuthRoutes.js';
+import searchConsoleRoutes from './src/routes/searchConsoleRoutes.js';
+import ga4Routes from './src/routes/ga4Routes.js';
+import integratedAnalyticsRoutes from './src/routes/integratedAnalyticsRoutes.js';
 import { initializeStorage } from './src/services/storage.js';
 import { getPublicLandingPage } from './src/controllers/landingPageController.js';
 
@@ -60,6 +64,10 @@ app.use('/api/admin/users', userRoutes);
 app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/admin/templates', templateRoutes);
 app.use('/api/admin/upload', uploadRoutes);
+app.use('/api/admin/google/oauth', googleOAuthRoutes);
+app.use('/api/admin/seo', searchConsoleRoutes);
+app.use('/api/admin/ga4', ga4Routes);
+app.use('/api/admin/integrated-analytics', integratedAnalyticsRoutes);
 app.use('/api/public', publicRoutes);
 
 // Public landing page route (no authentication required)
@@ -132,7 +140,7 @@ app.use((err, req, res, next) => {
 // Start server
 app.listen(PORT, async () => {
   console.log('='.repeat(60));
-  console.log(`🚀 DMAT Backend Server - Phase 2`);
+  console.log(`🚀 DMAT Backend Server - Phase 3 (SEO Engine)`);
   console.log(`📡 Running on: http://localhost:${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`\n🔗 API Endpoints:`);
@@ -164,12 +172,27 @@ app.listen(PORT, async () => {
   console.log(`\n   Image Upload (Admin):`);
   console.log(`   - POST   /api/admin/upload/image`);
   console.log(`   - DELETE /api/admin/upload/image`);
+  console.log(`\n   Google OAuth (Admin):`);
+  console.log(`   - GET    /api/admin/google/oauth/authorize`);
+  console.log(`   - GET    /api/admin/google/oauth/callback`);
+  console.log(`   - GET    /api/admin/google/oauth/status`);
+  console.log(`   - DELETE /api/admin/google/oauth/disconnect`);
+  console.log(`\n   Search Console & Keywords (Admin - NEW!):`);
+  console.log(`   - GET    /api/admin/seo/search-console/sites`);
+  console.log(`   - POST   /api/admin/seo/search-console/sync`);
+  console.log(`   - GET    /api/admin/seo/keywords`);
+  console.log(`   - GET    /api/admin/seo/keywords/top`);
+  console.log(`   - GET    /api/admin/seo/keywords/declining`);
+  console.log(`   - GET    /api/admin/seo/keywords/export`);
+  console.log(`   - GET    /api/admin/seo/keywords/:keyword/trend`);
+  console.log(`   - GET    /api/admin/seo/indexing-issues`);
   console.log(`\n   Lead Capture (Public):`);
   console.log(`   - POST   /api/public/leads`);
   console.log(`\n   Public Landing Pages:`);
   console.log(`   - GET    /public/:slug`);
   console.log(`\n📝 Admin endpoints require Authorization header: Bearer <token>`);
   console.log(`📝 Public endpoints require no authentication`);
+  console.log(`🔐 Google OAuth configured: ${process.env.GOOGLE_CLIENT_ID ? '✓' : '✗'}`);
   console.log('='.repeat(60));
 
   // Initialize MinIO storage

@@ -56,6 +56,30 @@ function Layout({ children }) {
             <span className="nav-icon">👤</span>
             <span>Users</span>
           </Link>
+
+          <Link
+            to="/google-account"
+            className={`nav-item ${isActive('/google-account') ? 'active' : ''}`}
+          >
+            <span className="nav-icon">🔐</span>
+            <span>Google Account</span>
+          </Link>
+
+          <Link
+            to="/keywords"
+            className={`nav-item ${isActive('/keywords') ? 'active' : ''}`}
+          >
+            <span className="nav-icon">🔍</span>
+            <span>Keywords</span>
+          </Link>
+
+          <Link
+            to="/analytics"
+            className={`nav-item ${isActive('/analytics') ? 'active' : ''}`}
+          >
+            <span className="nav-icon">📈</span>
+            <span>Analytics</span>
+          </Link>
         </nav>
 
         <div className="sidebar-footer">

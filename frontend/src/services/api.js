@@ -453,3 +453,214 @@ export const deleteImage = async (imageUrl) => {
     body: JSON.stringify({ url: imageUrl }),
   });
 };
+
+// ============================================================================
+// GOOGLE OAUTH APIs (Phase 3 - SEO Engine)
+// ============================================================================
+
+/**
+ * Get Google OAuth authorization URL
+ * @returns {Promise<Object>} - {authUrl}
+ */
+export const getGoogleAuthUrl = async () => {
+  return await fetchWithAuth('/api/admin/google/oauth/authorize');
+};
+
+/**
+ * Check Google OAuth connection status
+ * @returns {Promise<Object>} - {connected, tokenExpiry, isExpired, scope}
+ */
+export const getGoogleOAuthStatus = async () => {
+  return await fetchWithAuth('/api/admin/google/oauth/status');
+};
+
+/**
+ * Disconnect Google account (revoke access)
+ * @returns {Promise<Object>}
+ */
+export const disconnectGoogleAccount = async () => {
+  return await fetchWithAuth('/api/admin/google/oauth/disconnect', {
+    method: 'DELETE',
+  });
+};
+
+// ============================================================================
+// SEARCH CONSOLE APIs (Phase 3 - Task 3)
+// ============================================================================
+
+/**
+ * Get list of Search Console sites
+ * @returns {Promise<Object>}
+ */
+export const getSearchConsoleSites = async () => {
+  return await fetchWithAuth('/api/admin/seo/search-console/sites');
+};
+
+/**
+ * Sync keyword data from Search Console
+ * @param {Object} data - { siteUrl, startDate, endDate }
+ * @returns {Promise<Object>}
+ */
+export const syncKeywords = async (data) => {
+  return await fetchWithAuth('/api/admin/seo/search-console/sync', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+/**
+ * Get keyword performance data
+ * @param {Object} params - Query parameters
+ * @returns {Promise<Object>}
+ */
+export const getKeywords = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `/api/admin/seo/keywords${queryString ? `?${queryString}` : ''}`;
+  return await fetchWithAuth(url);
+};
+
+/**
+ * Get top performing keywords
+ * @param {Object} params - { limit, sortBy, days }
+ * @returns {Promise<Object>}
+ */
+export const getTopKeywords = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `/api/admin/seo/keywords/top${queryString ? `?${queryString}` : ''}`;
+  return await fetchWithAuth(url);
+};
+
+/**
+ * Get declining keywords
+ * @param {Object} params - { limit, days }
+ * @returns {Promise<Object>}
+ */
+export const getDecliningKeywords = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `/api/admin/seo/keywords/declining${queryString ? `?${queryString}` : ''}`;
+  return await fetchWithAuth(url);
+};
+
+/**
+ * Get keyword trend data
+ * @param {string} keyword - Keyword to get trend for
+ * @param {number} days - Number of days
+ * @returns {Promise<Object>}
+ */
+export const getKeywordTrend = async (keyword, days = 30) => {
+  return await fetchWithAuth(`/api/admin/seo/keywords/${encodeURIComponent(keyword)}/trend?days=${days}`);
+};
+
+/**
+ * Export keywords to CSV
+ * @param {Object} params - Query parameters
+ * @returns {Promise<Blob>}
+ */
+export const exportKeywords = async (params = {}) => {
+  const token = getAuthToken();
+  const queryString = new URLSearchParams(params).toString();
+  const url = `${API_BASE_URL}/api/admin/seo/keywords/export${queryString ? `?${queryString}` : ''}`;
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return await response.blob();
+};
+
+/**
+ * Get indexing issues
+ * @param {Object} params - Query parameters
+ * @returns {Promise<Object>}
+ */
+export const getIndexingIssues = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `/api/admin/seo/indexing-issues${queryString ? `?${queryString}` : ''}`;
+  return await fetchWithAuth(url);
+};
+
+// ============================================================================
+// GOOGLE ANALYTICS (GA4) APIs (Phase 3 - Task 4)
+// ============================================================================
+
+/**
+ * Get list of GA4 properties
+ * @returns {Promise<Object>}
+ */
+export const getGA4Properties = async () => {
+  return await fetchWithAuth('/api/admin/ga4/properties');
+};
+
+/**
+ * Add a GA4 property
+ * @param {Object} propertyData - Property information
+ * @returns {Promise<Object>}
+ */
+export const addGA4Property = async (propertyData) => {
+  return await fetchWithAuth('/api/admin/ga4/properties', {
+    method: 'POST',
+    body: JSON.stringify(propertyData),
+  });
+};
+
+/**
+ * Sync GA4 analytics data
+ * @param {Object} data - Sync parameters
+ * @returns {Promise<Object>}
+ */
+export const syncGA4Analytics = async (data) => {
+  return await fetchWithAuth('/api/admin/ga4/sync', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+/**
+ * Get GA4 metrics
+ * @param {Object} params - Query parameters
+ * @returns {Promise<Object>}
+ */
+export const getGA4Metrics = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `/api/admin/ga4/metrics${queryString ? `?${queryString}` : ''}`;
+  return await fetchWithAuth(url);
+};
+
+/**
+ * Get GA4 page views
+ * @param {Object} params - Query parameters
+ * @returns {Promise<Object>}
+ */
+export const getGA4PageViews = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `/api/admin/ga4/page-views${queryString ? `?${queryString}` : ''}`;
+  return await fetchWithAuth(url);
+};
+
+/**
+ * Get GA4 events
+ * @param {Object} params - Query parameters
+ * @returns {Promise<Object>}
+ */
+export const getGA4Events = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `/api/admin/ga4/events${queryString ? `?${queryString}` : ''}`;
+  return await fetchWithAuth(url);
+};
+
+/**
+ * Get GA4 analytics dashboard
+ * @param {Object} params - Query parameters
+ * @returns {Promise<Object>}
+ */
+export const getGA4Dashboard = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const url = `/api/admin/ga4/dashboard${queryString ? `?${queryString}` : ''}`;
+  return await fetchWithAuth(url);
+};

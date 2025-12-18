@@ -188,6 +188,19 @@ function LandingPagesPage() {
                     <span className="meta-label">Slug:</span>
                     <span className="meta-value">/{page.slug}</span>
                   </div>
+                  {page.publish_status === 'published' && (
+                    <div className="meta-item">
+                      <span className="meta-label">Public URL:</span>
+                      <a
+                        href={`/p/${page.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="meta-value public-link"
+                      >
+                        /p/{page.slug} ↗
+                      </a>
+                    </div>
+                  )}
                   <div className="meta-item">
                     <span className="meta-label">Created:</span>
                     <span className="meta-value">{formatDate(page.created_at)}</span>

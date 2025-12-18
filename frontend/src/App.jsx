@@ -9,6 +9,10 @@ import LandingPageFormPage from './pages/LandingPageFormPage';
 import PreviewPage from './pages/PreviewPage';
 import LeadsPage from './pages/LeadsPage';
 import UsersPage from './pages/UsersPage';
+import GoogleAccountPage from './pages/GoogleAccountPage';
+import KeywordsPage from './pages/KeywordsPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import PublicLandingPage from './pages/PublicLandingPage';
 import './App.css';
 
 function App() {
@@ -105,6 +109,42 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/google-account"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <GoogleAccountPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/keywords"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <KeywordsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <AnalyticsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Public landing page route - no authentication required */}
+          <Route path="/p/:slug" element={<PublicLandingPage />} />
 
           {/* 404 catch-all */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

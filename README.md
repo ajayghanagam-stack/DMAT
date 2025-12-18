@@ -45,7 +45,7 @@ DMAT is an enterprise-level platform designed to centralize and automate all dig
 
 ---
 
-### 📍 Current Status: Phase 2 Implementation Complete ✅
+### 📍 Current Status: Phase 3 Implementation Complete ✅
 
 **Phase 1 (MVP)** - Fully implemented and functional:
 - ✅ Landing Page Builder (admin interface + public pages)
@@ -62,7 +62,15 @@ DMAT is an enterprise-level platform designed to centralize and automate all dig
 - ✅ Hero Image Management
 - ✅ Enhanced Landing Page Features
 
-**Ready for Production!** See [Phase 2 Implementation](#phase-2-implementation-) for details.
+**Phase 3 (SEO Engine)** - Fully implemented and functional:
+- ✅ Google OAuth 2.0 Integration (Search Console + Analytics)
+- ✅ Keyword Tracking & Performance Monitoring
+- ✅ Google Analytics 4 (GA4) Dashboard
+- ✅ Search Console Data Sync
+- ✅ Keyword CSV Export
+- ✅ Public Landing Page GA4 Tracking
+
+**Ready for Production!** See [Phase 3 Implementation](#phase-3-implementation-) for details.
 
 ---
 
@@ -167,15 +175,76 @@ When complete, you'll see:
 - Responsive design (mobile-optimized)
 - Form submission tracking
 
+### Phase 3 Features (SEO Engine) ✅
+
+#### 1. Google OAuth 2.0 Integration
+- **Secure Authentication:** OAuth 2.0 flow for Google APIs
+- **Multi-Service Access:** Single authentication for Search Console and Analytics
+- **Token Management:** Automatic token refresh and storage
+- **Connection Status:** Real-time OAuth connection monitoring
+- **Easy Disconnect:** One-click account disconnection
+
+#### 2. Google Search Console Integration
+- **Website Verification:** Automatic detection of verified properties
+- **Keyword Data Sync:** Pull search query performance data
+- **Date Range Selection:** Flexible date range (7, 30, 90 days)
+- **Performance Metrics:**
+  - Search queries (keywords)
+  - Impressions and clicks
+  - Click-through rate (CTR)
+  - Average ranking position
+- **Data Storage:** PostgreSQL database with efficient indexing
+- **API Endpoints:** RESTful APIs for keyword data access
+
+#### 3. Keyword Tracking & Analytics
+- **Top Performing Keywords:** Identify high-traffic search terms
+- **Declining Keywords:** Track keywords losing position
+- **Keyword Trends:** Historical position and CTR tracking
+- **Search Filters:** Filter by keyword, URL, date range
+- **Pagination:** Handle large keyword datasets efficiently
+- **CSV Export:** Export keyword data with all metrics
+
+#### 4. Google Analytics 4 (GA4) Integration
+- **Property Selection:** List and select GA4 properties
+- **Analytics Dashboard:** Comprehensive metrics visualization
+  - Total users and sessions
+  - Average session duration
+  - Bounce rate
+  - Page views
+  - Traffic sources (source/medium)
+  - Top pages performance
+  - Conversion events tracking
+- **Date Range Analysis:** Flexible date range selection
+- **Real-time Data:** Pull latest analytics data on demand
+
+#### 5. Landing Page GA4 Tracking
+- **Auto-Initialization:** GA4 tracking code injection on public pages
+- **Event Tracking:**
+  - Page views
+  - Form submissions
+  - Lead captures
+  - User interactions
+- **Custom Events:** Track custom conversion goals
+- **Privacy-Friendly:** Respects user privacy preferences
+
+#### 6. Analytics & Keywords Pages
+- **Keywords Page:** Dedicated UI for keyword performance monitoring
+  - Top keywords card with sorting (clicks, impressions, CTR)
+  - Declining keywords alert card
+  - All keywords table with search
+  - Data sync interface
+  - CSV export button
+- **Analytics Page:** Comprehensive GA4 analytics dashboard
+  - Property selector
+  - Date range picker
+  - Metrics cards (users, sessions, duration, bounce rate)
+  - Traffic sources chart
+  - Top pages table
+  - Google account connection status
+
 ### Future Features (Roadmap)
 
-#### 5. SEO & Web Performance Monitoring
-- Website visibility insights and SEO recommendations
-- Keyword performance tracking via Google Search Console
-- Traffic trends via Google Analytics
-- SEO scoring and improvement recommendations
-
-#### 6. Social Media Automation
+#### Phase 4+: Social Media Automation
 - Multi-platform scheduling (LinkedIn, Facebook, Instagram, YouTube, X/Twitter)
 - Centralized content calendar
 - Performance metrics tracking
@@ -216,11 +285,23 @@ When complete, you'll see:
 | **WordPress Integration** | WordPress REST API | Direct publishing to WordPress sites |
 | **Authentication** | Application Passwords | Secure WordPress REST API authentication |
 
+### Phase 3 Additions
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **Google OAuth 2.0** | Google APIs Client Library | Secure authentication for Google services |
+| **Search Console Integration** | Google Search Console API | Keyword tracking and search performance data |
+| **Analytics Integration** | Google Analytics Data API (GA4) | Website analytics and user behavior tracking |
+| **Analytics Admin** | Google Analytics Admin API | GA4 property management and configuration |
+| **Token Storage** | PostgreSQL | Secure OAuth token storage and management |
+| **SEO Database** | PostgreSQL | Keyword performance and indexing issue tracking |
+
 ### API Integrations
 
 - **WordPress REST API** (Phase 2: Implemented ✅)
-- Google Analytics Data API (GA4)
-- Google Search Console API
+- **Google Search Console API** (Phase 3: Implemented ✅)
+- **Google Analytics Data API (GA4)** (Phase 3: Implemented ✅)
+- **Google Analytics Admin API** (Phase 3: Implemented ✅)
 - LinkedIn Marketing API
 - Meta Graph API (Facebook & Instagram)
 - Twitter API v2
@@ -330,7 +411,7 @@ This script will:
 - Configure access credentials
 
 #### Manual Setup
-See [MINIO_SETUP.md](./MINIO_SETUP.md) for detailed instructions.
+See [docs/setup/MINIO_SETUP.md](./docs/setup/MINIO_SETUP.md) for detailed instructions.
 
 #### Verify MinIO Installation
 ```bash
@@ -465,6 +546,21 @@ MINIO_BUCKET=dmat-images
 # 3. Scroll to "Application Passwords" section
 # 4. Enter name (e.g., "DMAT") and click "Add New Application Password"
 # 5. Copy the generated password (format: xxxx xxxx xxxx xxxx xxxx xxxx)
+
+# Google OAuth Configuration (Phase 3 - Required for SEO features)
+# See docs/setup/GOOGLE_SETUP.md for complete setup instructions
+GOOGLE_CLIENT_ID=your_client_id_here.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your_client_secret_here
+GOOGLE_REDIRECT_URI=http://localhost:5001/api/admin/google/oauth/callback
+
+# How to get Google OAuth credentials:
+# 1. Go to Google Cloud Console (console.cloud.google.com)
+# 2. Create a new project or select existing
+# 3. Enable APIs: Search Console API, Analytics Data API, Analytics Admin API
+# 4. Create OAuth 2.0 credentials (Web application)
+# 5. Add authorized redirect URI: http://localhost:5001/api/admin/google/oauth/callback
+# 6. Copy Client ID and Client Secret to .env file
+# 7. See docs/setup/GOOGLE_SETUP.md for detailed step-by-step instructions
 ```
 
 ### Frontend Environment Variables (.env)
@@ -474,7 +570,7 @@ Create a `.env` file in the `frontend` directory:
 ```env
 VITE_API_BASE_URL=http://localhost:5001
 VITE_APP_NAME=DMAT
-VITE_APP_VERSION=2.0.0
+VITE_APP_VERSION=3.0.0
 ```
 
 ### WordPress Integration Setup (Optional)
@@ -482,7 +578,7 @@ VITE_APP_VERSION=2.0.0
 WordPress integration is **100% FREE** and uses the built-in WordPress REST API (no plugins or costs).
 
 **To enable WordPress publishing:**
-1. Follow the guide in [WORDPRESS_SETUP.md](./WORDPRESS_SETUP.md)
+1. Follow the guide in [docs/setup/WORDPRESS_SETUP.md](./docs/setup/WORDPRESS_SETUP.md)
 2. Generate Application Password in your WordPress admin
 3. Add credentials to `backend/.env`
 4. Restart backend server
@@ -492,7 +588,7 @@ WordPress integration is **100% FREE** and uses the built-in WordPress REST API 
 - Automatic HTML conversion with images and forms
 - No monthly costs or API limits
 
-See [WORDPRESS_SETUP.md](./WORDPRESS_SETUP.md) for complete setup instructions.
+See [docs/setup/WORDPRESS_SETUP.md](./docs/setup/WORDPRESS_SETUP.md) for complete setup instructions.
 
 ---
 
@@ -504,10 +600,21 @@ DMAT/
 │   ├── src/
 │   │   ├── config/          # Configuration files
 │   │   ├── controllers/     # Route controllers
+│   │   │   ├── analyticsController.js        # GA4 analytics (Phase 3)
+│   │   │   ├── googleOAuthController.js      # Google OAuth (Phase 3)
+│   │   │   ├── publicLandingPageController.js # Public pages (Phase 3)
+│   │   │   └── searchConsoleController.js    # Search Console (Phase 3)
 │   │   ├── models/          # Database models
 │   │   ├── routes/          # API routes
+│   │   │   ├── analyticsRoutes.js            # GA4 routes (Phase 3)
+│   │   │   ├── googleOAuthRoutes.js          # OAuth routes (Phase 3)
+│   │   │   ├── publicLandingPageRoutes.js    # Public routes (Phase 3)
+│   │   │   └── searchConsoleRoutes.js        # Search Console routes (Phase 3)
 │   │   ├── services/        # Business logic
-│   │   │   └── wordpress.js # WordPress REST API integration (Phase 2)
+│   │   │   ├── wordpress.js                  # WordPress REST API (Phase 2)
+│   │   │   ├── googleApi.js                  # Google APIs client (Phase 3)
+│   │   │   ├── analyticsService.js           # GA4 service (Phase 3)
+│   │   │   └── searchConsoleService.js       # Search Console service (Phase 3)
 │   │   ├── middleware/      # Express middleware
 │   │   └── utils/           # Helper functions
 │   ├── .env.example         # Environment template
@@ -519,6 +626,9 @@ DMAT/
 │   ├── src/
 │   │   ├── components/      # React components
 │   │   ├── pages/           # Page components
+│   │   │   ├── AnalyticsPage.jsx             # GA4 analytics dashboard (Phase 3)
+│   │   │   ├── KeywordsPage.jsx              # Keyword tracking UI (Phase 3)
+│   │   │   └── PublicLandingPage.jsx         # Public page viewer (Phase 3)
 │   │   ├── services/        # API service calls
 │   │   ├── context/         # Context providers
 │   │   ├── utils/           # Helper functions
@@ -535,14 +645,17 @@ DMAT/
 ├── docs/                    # Documentation
 │   ├── DMAT.md              # Project specification
 │   ├── DMAT.docx            # Project specification (Word)
-│   ├── TESTING_SCENARIOS.md # UI testing guide (Phase 1 & 2)
-│   └── archive/             # Phase 1 planning documents
+│   ├── TESTING_SCENARIOS.md        # UI testing guide (Phase 1 & 2)
+│   ├── PHASE3_TESTING_SCENARIOS.md # UI testing guide (Phase 3)
+│   ├── setup/                      # Setup guides
+│   │   ├── GOOGLE_SETUP.md         # Google OAuth & API setup (Phase 3)
+│   │   ├── WORDPRESS_SETUP.md      # WordPress integration guide (Phase 2)
+│   │   └── MINIO_SETUP.md          # MinIO storage setup (Phase 2)
+│   └── archive/                    # Phase 1 planning documents
 │
 ├── bin/                     # Binaries (MinIO)
 ├── minio-storage/           # MinIO data storage (gitignored)
 ├── setup-minio.sh           # MinIO automated setup script
-├── MINIO_SETUP.md           # MinIO setup guide
-├── WORDPRESS_SETUP.md       # WordPress integration guide
 ├── docker-compose.yml       # Docker setup (optional)
 ├── .gitignore
 ├── README.md                # This file
@@ -629,29 +742,106 @@ npm run preview      # Preview production build
 3. Restart backend server
 4. Test connection via admin panel
 
-📖 **Complete guide:** [WORDPRESS_SETUP.md](./WORDPRESS_SETUP.md)
+📖 **Complete guide:** [docs/setup/WORDPRESS_SETUP.md](./docs/setup/WORDPRESS_SETUP.md)
 
 ### 2. MinIO Setup (Phase 2 - Implemented ✅)
 
 **100% FREE** - Self-hosted S3-compatible object storage
 
 1. Run automated setup: `./setup-minio.sh`
-2. Or follow manual setup in [MINIO_SETUP.md](./MINIO_SETUP.md)
+2. Or follow manual setup in [docs/setup/MINIO_SETUP.md](./docs/setup/MINIO_SETUP.md)
 3. Access console at http://localhost:9001
 4. Bucket `dmat-images` created automatically
+
+### 3. Google APIs Setup (Phase 3 - Implemented ✅)
+
+**100% FREE** - Uses Google Cloud APIs for Search Console & Analytics
+
+**Prerequisites:**
+- Google Account with access to Search Console and/or Analytics
+- Website verified in Google Search Console
+- GA4 property configured in Google Analytics
+
+**Setup Steps:**
+
+1. **Create Google Cloud Project:**
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create new project or select existing
+   - Enable required APIs:
+     - Google Search Console API
+     - Google Analytics Data API
+     - Google Analytics Admin API
+
+2. **Configure OAuth 2.0:**
+   - Create OAuth 2.0 credentials (Web application)
+   - Add authorized redirect URI: `http://localhost:5001/api/admin/google/oauth/callback`
+   - Configure OAuth consent screen
+   - Add scopes:
+     - `https://www.googleapis.com/auth/webmasters.readonly`
+     - `https://www.googleapis.com/auth/analytics.readonly`
+
+3. **Update Backend Environment:**
+   ```env
+   GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=your_client_secret
+   GOOGLE_REDIRECT_URI=http://localhost:5001/api/admin/google/oauth/callback
+   ```
+
+4. **Restart Backend Server:**
+   ```bash
+   cd backend && npm start
+   ```
+
+5. **Connect Google Account:**
+   - Login to DMAT admin panel
+   - Navigate to Analytics page
+   - Click "Connect Google Account"
+   - Authorize access to Search Console and Analytics
+
+6. **Start Using:**
+   - **Keywords Page:** Select site → Sync keyword data → View top/declining keywords → Export CSV
+   - **Analytics Page:** Select GA4 property → Load analytics → View metrics dashboard
+
+📖 **Complete step-by-step guide:** [docs/setup/GOOGLE_SETUP.md](./docs/setup/GOOGLE_SETUP.md)
+
+**Features Enabled:**
+- ✅ Keyword performance tracking from Search Console
+- ✅ Website analytics from GA4
+- ✅ Traffic source analysis
+- ✅ Top/declining keywords monitoring
+- ✅ CSV export of keyword data
+- ✅ Public landing page GA4 tracking
 
 ---
 
 ## 📊 Database
 
 DMAT uses PostgreSQL with a well-structured relational schema. Core tables include:
+
+**Phase 1 & 2 Tables:**
 - `users` - System users with role-based access
 - `landing_pages` - Landing page content and metadata
   - Supports custom `form_fields` JSON (Phase 2)
   - Stores `hero_image_url` for MinIO images (Phase 2)
+  - Stores `ga4_property_id` for analytics tracking (Phase 3)
   - WordPress integration fields: `wordpress_post_id`, `wordpress_url`
 - `leads` - Unified lead database from all sources
   - Captures custom form field responses
+
+**Phase 3 Tables (SEO Engine):**
+- `google_oauth_tokens` - Secure storage for Google OAuth tokens
+  - Access tokens and refresh tokens
+  - Token expiration tracking
+  - User-specific token isolation
+- `search_console_keywords` - Keyword performance data
+  - Search queries and URLs
+  - Impressions, clicks, CTR, position metrics
+  - Date-based tracking for historical analysis
+  - Indexed for fast querying
+- `indexing_issues` - SEO indexing problems (future use)
+  - URL and issue type tracking
+  - Severity levels
+  - Status management
 
 📖 **For complete database documentation:**
 - **[Database Setup Guide](./database/README.md)** - Setup instructions and migration commands
@@ -662,16 +852,22 @@ DMAT uses PostgreSQL with a well-structured relational schema. Core tables inclu
 
 ### Project Documentation
 - **[DMAT Project Specification](./docs/DMAT.md)** - Complete project overview (Word version: DMAT.docx)
-- **[Testing Scenarios](./docs/TESTING_SCENARIOS.md)** - 50+ UI test scenarios for Phase 1 & Phase 2 features
+- **[Testing Scenarios - Phase 1 & 2](./docs/TESTING_SCENARIOS.md)** - 50+ UI test scenarios
+- **[Testing Scenarios - Phase 3](./docs/PHASE3_TESTING_SCENARIOS.md)** - 55+ UI test scenarios for SEO Engine
 
-### Setup Guides (Phase 2)
-- **[WordPress Setup Guide](./WORDPRESS_SETUP.md)** - Complete WordPress REST API integration setup
-- **[MinIO Setup Guide](./MINIO_SETUP.md)** - S3-compatible object storage setup for image uploads
+### Setup Guides
+**Phase 2:**
+- **[WordPress Setup Guide](./docs/setup/WORDPRESS_SETUP.md)** - WordPress REST API integration setup
+- **[MinIO Setup Guide](./docs/setup/MINIO_SETUP.md)** - S3-compatible object storage setup
 
-### Phase 1 & Phase 2 Implementation ✅
+**Phase 3:**
+- **[Google Setup Guide](./docs/setup/GOOGLE_SETUP.md)** - Google OAuth, Search Console & Analytics setup
+
+### Phase 1, 2 & 3 Implementation ✅
 
 **Phase 1 (MVP) - COMPLETE** - Landing page builder and lead management
 **Phase 2 (Enhancements) - COMPLETE** - Custom fields, image uploads, WordPress integration
+**Phase 3 (SEO Engine) - COMPLETE** - Google Analytics, Search Console, Keyword tracking
 
 **What's Working:**
 - ✅ Complete authentication flow (login, JWT tokens, protected routes)
@@ -679,18 +875,27 @@ DMAT uses PostgreSQL with a well-structured relational schema. Core tables inclu
 - ✅ **Custom form fields** (add/edit/reorder dynamic fields)
 - ✅ **Hero image uploads** (via MinIO S3-compatible storage)
 - ✅ **Real WordPress publishing** (REST API integration)
+- ✅ **Google OAuth integration** (Search Console + Analytics)
+- ✅ **Keyword tracking & analytics** (Search Console data sync)
+- ✅ **GA4 analytics dashboard** (users, sessions, traffic sources)
+- ✅ **Public landing pages** (SEO-friendly with GA4 tracking)
+- ✅ **CSV export** (keywords and leads data)
 - ✅ Lead capture API (public form submission with validation)
 - ✅ Lead management (view, filter, search, update status, export CSV)
 - ✅ Responsive UI with gradient design
-- ✅ 50+ test scenarios documented
+- ✅ 100+ test scenarios documented
 
 **Quick Start:**
 1. Login at http://localhost:5173 (Credentials: `admin` / `admin123`)
-2. Create landing page with custom fields
-3. Upload hero image
-4. Preview and publish (to WordPress if configured)
-5. View captured leads with custom field responses
-6. Export lead data to CSV
+2. **Connect Google Account** (Analytics page → Connect Google Account)
+3. **Sync keyword data** (Keywords page → Select site → Sync Data)
+4. **View GA4 analytics** (Analytics page → Select property → Load Analytics)
+5. Create landing page with custom fields and GA4 tracking
+6. Upload hero image
+7. Preview and publish (to WordPress if configured)
+8. View public landing page at /p/your-slug
+9. View captured leads with custom field responses
+10. Export keyword and lead data to CSV
 
 ---
 
@@ -750,13 +955,50 @@ All features implemented and functional:
 
 ---
 
-### Phase 3 - SEO Engine (NEXT)
-- Page analyzer
-- Keyword tracker
-- SEO scoring
-- Google Search Console integration
+### Phase 3 - SEO Engine ✅ COMPLETE
+**Google Analytics, Search Console & Keyword Tracking**
 
-### Phase 4 - Social Publishing
+All features implemented and functional:
+- ✅ **Google OAuth 2.0 Integration** - Secure authentication flow
+  - OAuth consent screen configuration
+  - Token storage and refresh
+  - Connection status monitoring
+  - Easy account disconnection
+- ✅ **Google Search Console Integration** - Keyword tracking
+  - Website verification detection
+  - Search query performance data sync
+  - Flexible date range selection (7, 30, 90 days)
+  - Metrics: impressions, clicks, CTR, position
+  - PostgreSQL storage with efficient indexing
+- ✅ **Keyword Analytics** - Performance monitoring
+  - Top performing keywords dashboard
+  - Declining keywords alerts
+  - Keyword trends and historical tracking
+  - Advanced search and filtering
+  - CSV export with all metrics
+- ✅ **Google Analytics 4 Integration** - Website analytics
+  - GA4 property selection
+  - Comprehensive metrics dashboard
+  - Traffic source analysis
+  - Top pages performance
+  - Conversion event tracking
+- ✅ **Public Landing Pages** - SEO-optimized pages
+  - Dynamic route (/p/:slug)
+  - SEO meta tags (title, description, keywords)
+  - GA4 tracking code injection
+  - Event tracking (page views, form submissions, leads)
+  - Responsive design
+- ✅ **Analytics & Keywords Pages** - Dedicated UI
+  - Keywords page with top/declining cards
+  - Analytics dashboard with metrics visualization
+  - Data sync interface
+  - Export capabilities
+
+**Status:** ✅ Production Ready
+
+---
+
+### Phase 4 - Social Publishing (NEXT)
 - Post composer
 - Content calendar
 - Multi-channel scheduler (LinkedIn, Facebook, Instagram, YouTube, X/Twitter)
@@ -833,7 +1075,7 @@ curl -X GET http://localhost:5001/api/admin/wordpress/test \
 
 # Check credentials in backend/.env
 # Verify WordPress site is accessible
-# See WORDPRESS_SETUP.md for troubleshooting
+# See docs/setup/WORDPRESS_SETUP.md for troubleshooting
 ```
 
 #### PostgreSQL Connection Issues
