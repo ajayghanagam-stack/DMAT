@@ -123,6 +123,7 @@ GOOGLE_CLIENT_SECRET=your_client_secret_here
 GOOGLE_REDIRECT_URI=http://localhost:5001/api/admin/google/oauth/callback
 
 # LinkedIn Integration (Phase 4 - Required for LinkedIn posting)
+# See setup guide: ../docs/setup/LINKEDIN_SETUP.md
 LINKEDIN_CLIENT_ID=your_linkedin_client_id
 LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
 LINKEDIN_REDIRECT_URI=http://localhost:5001/api/admin/linkedin/oauth/callback
@@ -367,6 +368,7 @@ If frontend can't connect:
 - [WordPress Setup Guide](../docs/setup/WORDPRESS_SETUP.md) - WordPress integration (Phase 2)
 - [MinIO Setup Guide](../docs/setup/MINIO_SETUP.md) - Image storage setup (Phase 2)
 - [Google Setup Guide](../docs/setup/GOOGLE_SETUP.md) - Google OAuth & APIs (Phase 3)
+- [LinkedIn Setup Guide](../docs/setup/LINKEDIN_SETUP.md) - LinkedIn OAuth & posting (Phase 4)
 - [Testing Scenarios](../docs/TESTING_SCENARIOS.md) - UI testing guide (Phases 1-4)
 - [Frontend README](../frontend/README.md) - Frontend documentation
 - [Database Documentation](../database/Database.md) - Database structure

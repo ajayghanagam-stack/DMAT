@@ -934,54 +934,30 @@ LINKEDIN_REDIRECT_URI=http://localhost:5001/api/admin/linkedin/oauth/callback
 
 ### Getting LinkedIn OAuth Credentials
 
-**Step-by-Step Guide:**
+📖 **For complete step-by-step setup instructions with screenshots, see:**
+**[LinkedIn Setup Guide](setup/LINKEDIN_SETUP.md)**
 
-1. **Go to LinkedIn Developers**
-   - Visit: https://www.linkedin.com/developers
-   - Sign in with your LinkedIn account
+The setup guide covers:
+- ✅ LinkedIn Developers Portal account creation
+- ✅ Creating a LinkedIn App (with screenshots)
+- ✅ Configuring OAuth settings and redirect URIs
+- ✅ Requesting product access (OpenID Connect, Share on LinkedIn)
+- ✅ Getting Client ID and Client Secret
+- ✅ Backend environment configuration
+- ✅ Testing and troubleshooting (10 common issues)
+- ✅ Production deployment considerations
 
-2. **Create an App**
-   - Click "Create app"
-   - Fill in:
-     - App name: "DMAT"
-     - LinkedIn Page: Select or create a company page
-     - App logo: Upload logo (optional)
-     - Legal agreement: Accept terms
+**Quick summary for experienced developers:**
 
-3. **Configure OAuth Settings**
-   - Go to "Auth" tab
-   - Add Redirect URLs:
-     ```
-     http://localhost:5001/api/admin/linkedin/oauth/callback
-     https://yourdomain.com/api/admin/linkedin/oauth/callback
-     ```
+1. Create app at https://www.linkedin.com/developers
+2. Request access to:
+   - ✅ **Sign In with LinkedIn using OpenID Connect** (required)
+   - ✅ **Share on LinkedIn** (required)
+3. Configure redirect URI: `http://localhost:5001/api/admin/linkedin/oauth/callback`
+4. Copy Client ID and Client Secret to `backend/.env`
+5. Verify scopes: `openid`, `profile`, `email`, `w_member_social`
 
-4. **Request Product Access**
-   - Go to "Products" tab
-   - Request access to:
-     - ✅ **Sign In with LinkedIn using OpenID Connect** (required)
-     - ✅ **Share on LinkedIn** (required)
-   - Wait for approval (usually instant for OpenID Connect)
-
-5. **Get Credentials**
-   - Go to "Auth" tab
-   - Copy:
-     - Client ID
-     - Client Secret
-   - Add to `backend/.env`
-
-6. **Verify Scopes**
-   - Ensure scopes include:
-     - `openid`
-     - `profile`
-     - `email`
-     - `w_member_social`
-
-**Important Notes:**
-- LinkedIn Apps require a company page (create one if needed)
-- "Share on LinkedIn" product may require verification
-- Test with personal LinkedIn account first
-- Production apps should use HTTPS redirect URIs
+**Setup time:** 30-45 minutes (including product approval wait time)
 
 ---
 
@@ -1023,10 +999,16 @@ This guide provides step-by-step instructions for implementing Phase 4 from scra
 
 ### Step 2: LinkedIn App Setup
 
-**Time: 20 minutes**
+**Time: 30-45 minutes**
+
+📖 **Follow the complete setup guide:** [LinkedIn Setup Guide](setup/LINKEDIN_SETUP.md)
+
+**Quick checklist:**
 
 1. **Create LinkedIn App:**
-   - Follow instructions in [Configuration](#configuration) section
+   - Visit LinkedIn Developers Portal
+   - Create new app with company page
+   - Request product access (OpenID Connect + Share on LinkedIn)
    - Save Client ID and Client Secret
 
 2. **Configure environment:**
@@ -1044,8 +1026,12 @@ This guide provides step-by-step instructions for implementing Phase 4 from scra
 
 3. **Test configuration:**
    ```bash
-   echo $LINKEDIN_CLIENT_ID  # Should print your client ID
+   # Verify environment variables are set
+   grep LINKEDIN backend/.env
    ```
+
+📖 **For detailed instructions with screenshots, troubleshooting, and common issues, see:**
+**[LinkedIn Setup Guide](setup/LINKEDIN_SETUP.md)**
 
 ---
 

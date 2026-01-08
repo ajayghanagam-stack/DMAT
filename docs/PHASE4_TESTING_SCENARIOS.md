@@ -33,12 +33,19 @@
 ### Prerequisites
 
 **1. LinkedIn Developer App Setup:**
+
+📖 **See complete setup guide:** [LinkedIn Setup Guide](setup/LINKEDIN_SETUP.md)
+
+**Checklist:**
 - [ ] LinkedIn Developer account created
 - [ ] DMAT app created in LinkedIn Developers portal
 - [ ] "Sign In with LinkedIn using OpenID Connect" product approved
 - [ ] "Share on LinkedIn" product requested/approved
 - [ ] Redirect URIs configured:
   - `http://localhost:5001/api/admin/linkedin/oauth/callback`
+- [ ] Client ID and Client Secret obtained
+
+**Note:** If you haven't completed LinkedIn setup yet, follow the [LinkedIn Setup Guide](setup/LINKEDIN_SETUP.md) before proceeding with testing. The guide includes screenshots and troubleshooting for common issues.
 
 **2. Backend Configuration:**
 ```bash

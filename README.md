@@ -616,13 +616,14 @@ LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
 LINKEDIN_REDIRECT_URI=http://localhost:5001/api/admin/linkedin/oauth/callback
 
 # How to get LinkedIn OAuth credentials:
-# 1. Go to LinkedIn Developers (https://www.linkedin.com/developers)
-# 2. Create a new app or use existing
-# 3. Request access to "Sign In with LinkedIn using OpenID Connect" product
-# 4. Request access to "Share on LinkedIn" product
-# 5. Add authorized redirect URI: http://localhost:5001/api/admin/linkedin/oauth/callback
-# 6. Copy Client ID and Client Secret to .env file
-# 7. Ensure scopes include: openid, profile, email, w_member_social
+# See complete step-by-step guide: docs/setup/LINKEDIN_SETUP.md
+# Quick summary:
+# 1. Create LinkedIn app at https://www.linkedin.com/developers
+# 2. Request "Sign In with LinkedIn using OpenID Connect" product
+# 3. Request "Share on LinkedIn" product
+# 4. Add redirect URI: http://localhost:5001/api/admin/linkedin/oauth/callback
+# 5. Copy Client ID and Client Secret to this .env file
+# Full guide with screenshots: docs/setup/LINKEDIN_SETUP.md
 ```
 
 ### Frontend Environment Variables (.env)
