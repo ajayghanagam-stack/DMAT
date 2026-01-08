@@ -664,3 +664,75 @@ export const getGA4Dashboard = async (params = {}) => {
   const url = `/api/admin/ga4/dashboard${queryString ? `?${queryString}` : ''}`;
   return await fetchWithAuth(url);
 };
+
+// ============================================================================
+// SEO DASHBOARD APIs
+// ============================================================================
+
+/**
+ * Get unified SEO dashboard
+ * @param {number} days - Number of days to look back (default 30)
+ * @returns {Promise<Object>}
+ */
+export const getSeoDashboard = async (days = 30) => {
+  const url = `/api/admin/seo-dashboard?days=${days}`;
+  return await fetchWithAuth(url);
+};
+
+// ============================================================================
+// LINKEDIN APIs (Phase 4 - Social Publishing)
+// ============================================================================
+
+/**
+ * Get LinkedIn OAuth authorization URL
+ * @returns {Promise<Object>} - {authorizationUrl}
+ */
+export const getLinkedInAuthUrl = async () => {
+  return await fetchWithAuth('/api/admin/linkedin/oauth/authorize');
+};
+
+/**
+ * Check LinkedIn connection status
+ * @returns {Promise<Object>} - {connected, linkedinUserName, linkedinUserEmail, connectedAt}
+ */
+export const getLinkedInStatus = async () => {
+  return await fetchWithAuth('/api/admin/linkedin/status');
+};
+
+/**
+ * Disconnect LinkedIn account
+ * @returns {Promise<Object>}
+ */
+export const disconnectLinkedIn = async () => {
+  return await fetchWithAuth('/api/admin/linkedin/disconnect', {
+    method: 'POST',
+  });
+};
+
+/**
+ * Publish post to LinkedIn
+ * @param {Object} data - {content, imageUrl}
+ * @returns {Promise<Object>}
+ */
+export const publishLinkedInPost = async (data) => {
+  return await fetchWithAuth('/api/admin/linkedin/posts', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+};
+
+/**
+ * Get LinkedIn post history
+ * @returns {Promise<Object>} - {posts}
+ */
+export const getLinkedInPosts = async () => {
+  return await fetchWithAuth('/api/admin/linkedin/posts');
+};
+
+/**
+ * Get LinkedIn post statistics
+ * @returns {Promise<Object>} - {totalPosts, postsLast30Days}
+ */
+export const getLinkedInStats = async () => {
+  return await fetchWithAuth('/api/admin/linkedin/stats');
+};

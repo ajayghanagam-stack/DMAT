@@ -8,11 +8,18 @@ React + Vite frontend for the Digital Marketing Automation Tool.
 # Install dependencies
 npm install
 
+# Create .env file
+cp .env.example .env
+
 # Start development server
 npm run dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+**Default Login:**
+- Username: `admin`
+- Password: `admin123`
 
 ## 📦 Available Scripts
 
@@ -34,8 +41,11 @@ npm run lint         # Lint code with ESLint
 
 ## 🛠 Tech Stack
 
-- **React 18+** - UI library
+- **React 18+** - UI library with Hooks
 - **Vite** - Build tool and dev server
+- **React Router** - Client-side routing
+- **Axios** - HTTP client for API calls
+- **CSS Modules** - Component-scoped styling
 - **ESLint** - Code linting
 
 ## 📁 Project Structure

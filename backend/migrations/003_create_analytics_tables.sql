@@ -88,6 +88,21 @@ CREATE TABLE IF NOT EXISTS ga4_events (
 );
 
 -- ============================================================================
+-- Table: ga4_sessions
+-- Purpose: Store session-level data with traffic sources
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS ga4_sessions (
+  id SERIAL PRIMARY KEY,
+  property_id VARCHAR(50) NOT NULL,
+  date DATE NOT NULL,
+  traffic_source VARCHAR(100),
+  session_count INTEGER DEFAULT 0,
+  avg_session_duration DECIMAL(10,2),
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(property_id, date, traffic_source)
+);
+
+-- ============================================================================
 -- Indexes for performance
 -- ============================================================================
 
@@ -112,6 +127,12 @@ CREATE INDEX IF NOT EXISTS idx_ga4_events_date ON ga4_events(date);
 CREATE INDEX IF NOT EXISTS idx_ga4_events_event_name ON ga4_events(event_name);
 CREATE INDEX IF NOT EXISTS idx_ga4_events_property_date ON ga4_events(property_id, date);
 
+-- ga4_sessions indexes
+CREATE INDEX IF NOT EXISTS idx_ga4_sessions_property_id ON ga4_sessions(property_id);
+CREATE INDEX IF NOT EXISTS idx_ga4_sessions_date ON ga4_sessions(date);
+CREATE INDEX IF NOT EXISTS idx_ga4_sessions_traffic_source ON ga4_sessions(traffic_source);
+CREATE INDEX IF NOT EXISTS idx_ga4_sessions_property_date ON ga4_sessions(property_id, date);
+
 -- ============================================================================
 -- Comments for documentation
 -- ============================================================================
@@ -120,6 +141,7 @@ COMMENT ON TABLE ga4_properties IS 'Stores Google Analytics 4 property informati
 COMMENT ON TABLE ga4_metrics IS 'Stores daily aggregated metrics from Google Analytics 4';
 COMMENT ON TABLE ga4_page_views IS 'Stores page-level performance data from Google Analytics 4';
 COMMENT ON TABLE ga4_events IS 'Stores custom events and conversions from Google Analytics 4';
+COMMENT ON TABLE ga4_sessions IS 'Stores session-level data grouped by traffic source from Google Analytics 4';
 
 COMMENT ON COLUMN ga4_metrics.users IS 'Total number of users (active users with at least one session)';
 COMMENT ON COLUMN ga4_metrics.new_users IS 'Number of first-time users';

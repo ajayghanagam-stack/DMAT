@@ -10,9 +10,9 @@ import PreviewPage from './pages/PreviewPage';
 import LeadsPage from './pages/LeadsPage';
 import UsersPage from './pages/UsersPage';
 import GoogleAccountPage from './pages/GoogleAccountPage';
-import KeywordsPage from './pages/KeywordsPage';
-import AnalyticsPage from './pages/AnalyticsPage';
+import SEODashboardPage from './pages/SEODashboardPage';
 import PublicLandingPage from './pages/PublicLandingPage';
+import LinkedInPage from './pages/LinkedInPage';
 import './App.css';
 
 function App() {
@@ -122,22 +122,22 @@ function App() {
           />
 
           <Route
-            path="/keywords"
+            path="/seo-dashboard"
             element={
               <ProtectedRoute>
                 <Layout>
-                  <KeywordsPage />
+                  <SEODashboardPage />
                 </Layout>
               </ProtectedRoute>
             }
           />
 
           <Route
-            path="/analytics"
+            path="/linkedin"
             element={
               <ProtectedRoute>
                 <Layout>
-                  <AnalyticsPage />
+                  <LinkedInPage />
                 </Layout>
               </ProtectedRoute>
             }

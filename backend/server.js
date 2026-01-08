@@ -15,6 +15,8 @@ import googleOAuthRoutes from './src/routes/googleOAuthRoutes.js';
 import searchConsoleRoutes from './src/routes/searchConsoleRoutes.js';
 import ga4Routes from './src/routes/ga4Routes.js';
 import integratedAnalyticsRoutes from './src/routes/integratedAnalyticsRoutes.js';
+import seoDashboardRoutes from './src/routes/seoDashboardRoutes.js';
+import linkedinRoutes from './src/routes/linkedinRoutes.js';
 import { initializeStorage } from './src/services/storage.js';
 import { getPublicLandingPage } from './src/controllers/landingPageController.js';
 
@@ -68,6 +70,8 @@ app.use('/api/admin/google/oauth', googleOAuthRoutes);
 app.use('/api/admin/seo', searchConsoleRoutes);
 app.use('/api/admin/ga4', ga4Routes);
 app.use('/api/admin/integrated-analytics', integratedAnalyticsRoutes);
+app.use('/api/admin/seo-dashboard', seoDashboardRoutes);
+app.use('/api/admin/linkedin', linkedinRoutes);
 app.use('/api/public', publicRoutes);
 
 // Public landing page route (no authentication required)

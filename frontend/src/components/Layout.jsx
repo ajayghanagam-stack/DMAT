@@ -66,19 +66,19 @@ function Layout({ children }) {
           </Link>
 
           <Link
-            to="/keywords"
-            className={`nav-item ${isActive('/keywords') ? 'active' : ''}`}
+            to="/seo-dashboard"
+            className={`nav-item ${isActive('/seo-dashboard') ? 'active' : ''}`}
           >
-            <span className="nav-icon">🔍</span>
-            <span>Keywords</span>
+            <span className="nav-icon">🚀</span>
+            <span>SEO Insights</span>
           </Link>
 
           <Link
-            to="/analytics"
-            className={`nav-item ${isActive('/analytics') ? 'active' : ''}`}
+            to="/linkedin"
+            className={`nav-item ${isActive('/linkedin') ? 'active' : ''}`}
           >
-            <span className="nav-icon">📈</span>
-            <span>Analytics</span>
+            <span className="nav-icon">💼</span>
+            <span>LinkedIn</span>
           </Link>
         </nav>
 

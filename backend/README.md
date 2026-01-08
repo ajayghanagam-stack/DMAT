@@ -48,8 +48,9 @@ npm start            # Start production server
 - **bcryptjs** - Password hashing
 - **jsonwebtoken** - JWT authentication
 - **MinIO** - S3-compatible object storage (Phase 2)
-- **Axios** - HTTP client for WordPress integration (Phase 2)
+- **Axios** - HTTP client for WordPress and LinkedIn integration (Phase 2, 4)
 - **Multer** - File upload handling (Phase 2)
+- **googleapis** - Google APIs client library (Phase 3)
 - **dotenv** - Environment variables
 - **cors** - Cross-origin resource sharing
 - **nodemon** - Development auto-reload
@@ -115,6 +116,16 @@ MINIO_BUCKET=dmat-images
 # WP_SITE_URL=https://yoursite.com
 # WP_USERNAME=your-wordpress-username
 # WP_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
+
+# Google OAuth Configuration (Phase 3 - Required for SEO features)
+GOOGLE_CLIENT_ID=your_client_id_here.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your_client_secret_here
+GOOGLE_REDIRECT_URI=http://localhost:5001/api/admin/google/oauth/callback
+
+# LinkedIn Integration (Phase 4 - Required for LinkedIn posting)
+LINKEDIN_CLIENT_ID=your_linkedin_client_id
+LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
+LINKEDIN_REDIRECT_URI=http://localhost:5001/api/admin/linkedin/oauth/callback
 ```
 
 ## 🔌 API Endpoints
@@ -333,15 +344,54 @@ If frontend can't connect:
 ✅ Hero image management
 ✅ Enhanced landing page features (headline, body, CTA)
 
+### Phase 3 (SEO Engine) ✅ COMPLETE
+✅ Google OAuth 2.0 Integration
+✅ Google Search Console API Integration
+✅ Google Analytics 4 (GA4) API Integration
+✅ Keyword tracking and performance monitoring
+✅ SEO data sync endpoints
+✅ Analytics dashboard APIs
+✅ CSV export functionality
+
+### Phase 4 (Social Publishing) ✅ COMPLETE
+✅ LinkedIn OAuth 2.0 Integration (OpenID Connect)
+✅ LinkedIn UGC Posts API Integration
+✅ Post publishing endpoints
+✅ Post history tracking APIs
+✅ Post statistics endpoints
+✅ Account connection management
+
 ## 🔗 Related Documentation
 
 - [Main README](../README.md) - Full project documentation
-- [WordPress Setup Guide](../docs/setup/WORDPRESS_SETUP.md) - WordPress integration
-- [MinIO Setup Guide](../docs/setup/MINIO_SETUP.md) - Image storage setup
-- [Google Setup Guide](../docs/setup/GOOGLE_SETUP.md) - Google OAuth & APIs
-- [Testing Scenarios](../docs/TESTING_SCENARIOS.md) - UI testing guide
+- [WordPress Setup Guide](../docs/setup/WORDPRESS_SETUP.md) - WordPress integration (Phase 2)
+- [MinIO Setup Guide](../docs/setup/MINIO_SETUP.md) - Image storage setup (Phase 2)
+- [Google Setup Guide](../docs/setup/GOOGLE_SETUP.md) - Google OAuth & APIs (Phase 3)
+- [Testing Scenarios](../docs/TESTING_SCENARIOS.md) - UI testing guide (Phases 1-4)
 - [Frontend README](../frontend/README.md) - Frontend documentation
 - [Database Documentation](../database/Database.md) - Database structure
+
+## 🎯 API Endpoints Summary
+
+### Phase 1 & 2 Endpoints
+- Authentication & User Management
+- Landing Pages CRUD
+- Lead Management
+- WordPress Integration
+- Custom Fields
+- Image Upload
+
+### Phase 3 Endpoints (SEO Engine)
+- `/api/admin/google/oauth/*` - Google OAuth flow
+- `/api/admin/analytics/*` - GA4 analytics data
+- `/api/admin/search-console/*` - Search Console data
+- `/api/admin/seo/*` - SEO insights and keyword tracking
+
+### Phase 4 Endpoints (Social Publishing)
+- `/api/admin/linkedin/oauth/*` - LinkedIn OAuth flow
+- `/api/admin/linkedin/posts` - Post publishing
+- `/api/admin/linkedin/status` - Connection status
+- `/api/admin/linkedin/stats` - Post statistics
 
 ---
 
